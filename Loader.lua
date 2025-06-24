@@ -1,9 +1,9 @@
 local Get = http.get
 
 local Games = {
-	[126884695634066] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Grow%20A%20Garden/TeleportScript.lua",
-	[126244816328678] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Dig/Stable.lua",
-	[16541340872] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Clark%20County/Stable.lua",
+	[126884695634066] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Grow%20A%20Garden/TeleportScript.lua", -- Grow A Garden
+	[126244816328678] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Dig/Stable.lua", -- Dig
+	[16541340872] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Clark%20County/Stable.lua", -- Clark County
 }
 
 local function logFunc(message)
