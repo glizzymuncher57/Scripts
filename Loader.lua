@@ -1,10 +1,5 @@
 local Get = http.get
-
-local Games = {
-	[126884695634066] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Grow%20A%20Garden/TeleportScript.lua", -- Grow A Garden
-	[126244816328678] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Dig/Stable.lua", -- Dig
-	[16541340872] = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Clark%20County/Stable.lua", -- Clark County
-}
+local Games = {}
 
 local function logFunc(message)
 	log.add(message, color(1, 0, 0, 1))
@@ -31,4 +26,10 @@ local function GetScript()
 	end)
 end
 
+local function GetGames()
+	local URL = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Gamelist.json"
+
+	Get(URL, function(Body, Status)
+		end)
+end
 GetScript()
