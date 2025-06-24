@@ -26,15 +26,6 @@ local function ReturnFirstDescendant(Parent, Name)
 	return nil_instance
 end
 
-local function CheckIfValid(...)
-	for _, v in pairs({ ... }) do
-		if not v:isvalid() then
-			return false
-		end
-	end
-	return true
-end
-
 local function StartTheDiggering()
 	local DigUI = PlayerGui:find_first_child("Dig")
 	if not DigUI:isvalid() then
@@ -58,12 +49,6 @@ local function StartTheDiggering()
 	end
 
 	while DIGGING do
-		local IsValid = CheckIfValid(DigUI, Area_Strong, PlayerBar)
-		if not IsValid then
-			logFunc("Gui Not Valid")
-			return
-		end
-
 		local success, err = pcall(function()
 			local PlayerBarPos = PlayerBar.gui_position + (PlayerBar.gui_size / 2)
 			local AreaPos = Area_Strong.gui_position + (Area_Strong.gui_size / 2)
