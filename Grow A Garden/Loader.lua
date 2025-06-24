@@ -1,5 +1,5 @@
 local GET = http.get
-local STABLE = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Dig/Stable.lua"
+local STABLE = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Grow%20A%20Garden/TeleportScript.lua"
 
 GET(STABLE, function(Body, Status)
 	if Status == 200 then
