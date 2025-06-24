@@ -5,7 +5,7 @@ local DEBUG = true
 local DIGGING = false
 
 local CONFIG = {
-	Tolerance = 85, -- Distance tolerance for clicking.
+	Tolerance = 27, -- Distance tolerance for clicking.
 	WaitWhenClicked = 125, -- Wait time when clicked (miliseconds)
 	WaitWhenNotClicked = 25, -- Wait time when not clicked (miliseconds)
 }
@@ -76,17 +76,17 @@ local ui = gui.create("Dig Settings", false)
 ui:set_pos(100, 100)
 ui:set_size(400, 200)
 
-local slider = ui:add_slider("slider1", "Tolerance", 0, 150, CONFIG.Tolerance)
+local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
 slider:change_callback(function()
-	CONFIG.Tolerance = math.floor(slider:get_value())
+	CONFIG.Tolerance = slider:get_value()
 end)
 
-local slider2 = ui:add_slider("slider2", "Wait When Clicked", 0, 200, CONFIG.WaitWhenClicked)
+local slider2 = ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
 slider2:change_callback(function()
 	CONFIG.WaitWhenClicked = math.floor(slider2:get_value())
 end)
 
-local slider3 = ui:add_slider("slider3", "Wait When Not Clicked", 0, 200, CONFIG.WaitWhenNotClicked)
+local slider3 = ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
 slider3:change_callback(function()
 	CONFIG.WaitWhenNotClicked = math.floor(slider3:get_value())
 end)
