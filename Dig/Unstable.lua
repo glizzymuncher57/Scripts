@@ -57,7 +57,13 @@ local function StartTheDiggering()
 		return
 	end
 
-	while DIGGING and CheckIfValid(DigUI, Area_Strong, PlayerBar) do
+	while DIGGING do
+		local IsValid = CheckIfValid(DigUI, Area_Strong, PlayerBar)
+		if not IsValid then
+			logFunc("Gui Not Valid")
+			return
+		end
+
 		local success, err = pcall(function()
 			local PlayerBarPos = PlayerBar.gui_position + (PlayerBar.gui_size / 2)
 			local AreaPos = Area_Strong.gui_position + (Area_Strong.gui_size / 2)
