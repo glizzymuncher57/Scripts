@@ -95,6 +95,6 @@ hook.addkey(0x51, "womp", function(KD)
 	DIGGING = KD
 
 	if DIGGING then
-		spawn(StartTheDiggering)
+		coroutine.resume(coroutine.create(StartTheDiggering))
 	end
 end)
