@@ -59,8 +59,7 @@ local function Init()
             if not IsKeyDown then return end
 
             TeleportToPosition(Info.Position)
-			log.notification("Teleported to " .. Info.Name, "Info")
-				log.notification(tostring(Info.Position), "Info")
+		log.notification("Teleported to " .. Info.Name, "Info")
         end)
     end
 end
