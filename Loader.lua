@@ -1,7 +1,4 @@
-local Scripts = {
-    Games = {},
-    Misc = {}
-}
+local Games = {}
 
 --// Cached Funcs
 local Get = http.get
@@ -15,9 +12,9 @@ local function LogFunc(message)
 	log.notification(message, "Info")
 end
 
-local function GetScript(SelectedCategory)
+local function GetScript()
 	local gameId = get_placeid()
-	local url = Scripts[SelectedCategory][gameId]
+	local url = Games[gameId]
 
 	if not url then
 		LogFunc("No script found for this game.")
@@ -51,7 +48,7 @@ local function GetGames(callback)
 			local Gamelist = JSON_to_table(Body)
 
 			if Gamelist then
-				Scripts.Games = Gamelist
+				Games = Gamelist
 				callback(true)
 			else
 				LogFunc("Failed to parse game list.")
