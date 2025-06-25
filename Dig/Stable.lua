@@ -53,25 +53,27 @@ local function StartTheDiggering()
 				return
 			end
 
-			local success, err = pcall(function()
-				local PlayerBarPos = PlayerBar.gui_position + (PlayerBar.gui_size / 2)
-				local Area_StrongPos = Area_Strong.gui_position + (Area_Strong.gui_size / 2)
-				local Distance = math.abs(PlayerBarPos.x - Area_StrongPos.x)
+			spawn(function()
+				local success, err = pcall(function()
+					local PlayerBarPos = PlayerBar.gui_position + (PlayerBar.gui_size / 2)
+					local Area_StrongPos = Area_Strong.gui_position + (Area_Strong.gui_size / 2)
+					local Distance = math.abs(PlayerBarPos.x - Area_StrongPos.x)
 
-				local Clicked = false
-				if Distance <= CONFIG.Tolerance then
-					input.simulate_mouse_click(MOUSE1)
-					Clicked = true
+					local Clicked = false
+					if Distance <= CONFIG.Tolerance then
+						input.simulate_mouse_click(MOUSE1)
+						Clicked = true
+					end
+
+					wait(Clicked and CONFIG.WaitWhenClicked or CONFIG.WaitWhenNotClicked)
+				end)
+
+				if not success then
+					logFunc("Error in dig loop: " .. tostring(err))
+					DIGGING = false
+					return
 				end
-
-				wait(Clicked and CONFIG.WaitWhenClicked or CONFIG.WaitWhenNotClicked)
 			end)
-
-			if not success then
-				logFunc("Error in dig loop: " .. tostring(err))
-				DIGGING = false
-				return
-			end
 		end
 	end
 end
