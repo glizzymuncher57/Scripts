@@ -11,7 +11,7 @@ local CONFIG = {
 	WaitWhenNotClicked = 0, -- Wait time when not clicked (miliseconds)
 }
 
-local function logFunc(...)
+local function LogFunc(...)
 	if DEBUG then
 		log.add(..., color(1, 0, 0, 1))
 	end
@@ -32,21 +32,21 @@ local function StartTheDiggering()
 	while DIGGING do
 		local DigUI = PlayerGui:find_first_child("Dig")
 		if not DigUI:isvalid() then
-			logFunc("Dig UI became invalid")
+			LogFunc("Dig UI became invalid")
 			DIGGING = false
 			return
 		end
 
 		local Area_Strong = ReturnFirstDescendant(DigUI, "Area_Strong")
 		if not Area_Strong:isvalid() then
-			logFunc("Area_Strong became invalid")
+			LogFunc("Area_Strong became invalid")
 			DIGGING = false
 			return
 		end
 
 		local PlayerBar = ReturnFirstDescendant(DigUI, "PlayerBar")
 		if not PlayerBar:isvalid() then
-			logFunc("PlayerBar became invalid")
+			LogFunc("PlayerBar became invalid")
 			DIGGING = false
 			return
 		end
@@ -66,7 +66,7 @@ local function StartTheDiggering()
 		end)
 
 		if not success then
-			logFunc("Error in dig loop: " .. tostring(err))
+			LogFunc("Error in dig loop: " .. tostring(err))
 			DIGGING = false
 			return
 		end
