@@ -60,6 +60,7 @@ local function Init()
 
             TeleportToPosition(Info.Position)
 			log.notification("Teleported to " .. Info.Name, "Info")
+				log.notification(tostring(Info.Position), "Info")
         end)
     end
 end
