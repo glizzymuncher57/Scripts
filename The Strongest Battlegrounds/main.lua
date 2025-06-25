@@ -46,7 +46,7 @@ local function Init()
     log.notification("teleport to teleport to an area.", "Info")
     log.notification("Press Shift + 1-4 to..", "Info")
 
-    for Keycode, Info in pairs(POSITION_TABLE) do
+    for Keycode, Info in pairs(POSITIONS) do
         hook.addkey(Keycode, tostring(Keycode), function()
 			local IsLCtrlDown = input.key_down(VK_LCTRL)
             local IsShiftDown = input.key_down(VK_SHIFT) or input.key_down(VK_LSHIFT)
