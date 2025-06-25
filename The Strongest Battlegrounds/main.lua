@@ -18,7 +18,7 @@ local POSITIONS = {
 
 	[0x33] = {
 		Name = "Fist Room",
-		Position = vector3(-67, 29, 20339),
+		Position = vector3(1076, 143, 23005),
 	},
 
 	[0x34] = {
