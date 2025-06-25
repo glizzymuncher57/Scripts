@@ -1,8 +1,3 @@
-vector3(152, 440, 34), - Center of map
-vector3(-25047, 0, -25047), - ball room
-vector3(-67, 29, 20339), - fist room
-vector3(438, 439, -376) - random hole
-
 local players = game:get_service("Players")
 local localplayer = players.local_player
 
