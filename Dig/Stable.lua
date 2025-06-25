@@ -3,6 +3,7 @@ local PlayerGui = Player and Player:find_first_child("PlayerGui")
 
 local DEBUG = true
 local DIGGING = false
+local MODE = "Coroutine" -- Default mode, can be changed in the UI.
 
 local CONFIG = {
 	Tolerance = 27, -- Distance tolerance for clicking.
@@ -74,7 +75,7 @@ end
 
 local ui = gui.create("Dig Settings", false)
 ui:set_pos(100, 100)
-ui:set_size(400, 200)
+ui:set_size(400, 250)
 
 local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
 slider:change_callback(function()
@@ -86,15 +87,27 @@ slider2:change_callback(function()
 	CONFIG.WaitWhenClicked = math.floor(slider2:get_value())
 end)
 
-local slider3 = ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
+local slider3 =
+	ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
 slider3:change_callback(function()
 	CONFIG.WaitWhenNotClicked = math.floor(slider3:get_value())
+end)
+
+local combo1 = ui:add_combo("combo1", "Dig Mode", { "Coroutine - Press Q (can't be untoggled.)", "Thread - Hold Q" }, 1)
+combo1:change_callback(function()
+	local Index = combo:get_value()
+
+	MODE = (Index == 1) and "Coroutine" or "Thread"
 end)
 
 hook.addkey(0x51, "womp", function(KD)
 	DIGGING = KD
 
 	if DIGGING then
-		coroutine.resume(coroutine.create(StartTheDiggering))
+		if MODE == "Coroutine" then
+			coroutine.resume(coroutine.create(StartTheDiggering))
+		else
+			spawn(StartTheDiggering)
+		end
 	end
 end)
