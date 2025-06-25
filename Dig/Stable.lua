@@ -75,7 +75,7 @@ end
 
 local ui = gui.create("Dig Settings", false)
 ui:set_pos(100, 100)
-ui:set_size(400, 250)
+ui:set_size(400, 200)
 
 local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
 slider:change_callback(function()
