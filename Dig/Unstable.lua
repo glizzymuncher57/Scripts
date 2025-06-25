@@ -127,37 +127,38 @@ local function StartTheDiggering()
 	end
 end
 
-local ui = gui.create("Dig Settings", false)
-ui:set_pos(100, 100)
-ui:set_size(400, 200)
-
-local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
-slider:change_callback(function()
-	CONFIG.Tolerance = slider:get_value()
-end)
-
-local slider2 = ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
-slider2:change_callback(function()
-	CONFIG.WaitWhenClicked = floor(slider2:get_value())
-end)
-
-local slider3 =
-	ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
-slider3:change_callback(function()
-	CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
-end)
-
-local checkbox1 = ui:add_checkbox("checkbox1", "Use Coroutine", USE_COROUTINE)
-combo1:change_callback(function()
-	USE_COROUTINE = checkbox1:get_value()
-end)
-
-local checkbox2 = ui:add_checkbox("checkbox2", "Special Spot ESP", SPECIAL_SPOT_ESP)
-combo1:change_callback(function()
-	SPECIAL_SPOT_ESP = checkbox2:get_value()
-end)
-
 local function Initialise()
+	local ui = gui.create("Dig Settings", false)
+	ui:set_pos(100, 100)
+	ui:set_size(400, 200)
+
+	local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
+	slider:change_callback(function()
+		CONFIG.Tolerance = slider:get_value()
+	end)
+
+	local slider2 =
+		ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
+	slider2:change_callback(function()
+		CONFIG.WaitWhenClicked = floor(slider2:get_value())
+	end)
+
+	local slider3 =
+		ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
+	slider3:change_callback(function()
+		CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
+	end)
+
+	local checkbox1 = ui:add_checkbox("checkbox1", "Use Coroutine", USE_COROUTINE)
+	combo1:change_callback(function()
+		USE_COROUTINE = checkbox1:get_value()
+	end)
+
+	local checkbox2 = ui:add_checkbox("checkbox2", "Special Spot ESP", SPECIAL_SPOT_ESP)
+	combo1:change_callback(function()
+		SPECIAL_SPOT_ESP = checkbox2:get_value()
+	end)
+
 	spawn(function()
 		hook.add("render", "DigESP", function()
 			if not SPECIAL_SPOT_ESP then
