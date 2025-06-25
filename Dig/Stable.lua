@@ -3,7 +3,7 @@ local PlayerGui = Player and Player:find_first_child("PlayerGui")
 
 local DEBUG = true
 local DIGGING = false
-local MODE = "Coroutine" -- Default mode, can be changed in the UI.
+local USE_COROUTINE = true
 
 local CONFIG = {
 	Tolerance = 27, -- Distance tolerance for clicking.
@@ -93,18 +93,16 @@ slider3:change_callback(function()
 	CONFIG.WaitWhenNotClicked = math.floor(slider3:get_value())
 end)
 
-local combo1 = ui:add_combo("combo1", "Dig Mode", { "Coroutine - Press Q (can't be untoggled.)", "Thread - Hold Q" }, 1)
+local combo1 = ui:add_checkbox("checkbox1", "Use Coroutine", USE_COROUTINE)
 combo1:change_callback(function()
-	local Index = combo:get_value()
-
-	MODE = (Index == 1) and "Coroutine" or "Thread"
+	USE_COROUTINE = combo1:get_value()
 end)
 
 hook.addkey(0x51, "womp", function(KD)
 	DIGGING = KD
 
 	if DIGGING then
-		if MODE == "Coroutine" then
+		if USE_COROUTINE then
 			coroutine.resume(coroutine.create(StartTheDiggering))
 		else
 			spawn(StartTheDiggering)
