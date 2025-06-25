@@ -13,12 +13,12 @@ local POSITIONS = {
 
 	[0x32] = {
 		Name = "Ball Room",
-		Position = vector3(-25047, 0, -25047),
+		Position = vector3(1076, 143, 23005),
 	},
 
 	[0x33] = {
 		Name = "Fist Room",
-		Position = vector3(1076, 143, 23005),
+		Position = vector3(-67, 29, 20339),
 	},
 
 	[0x34] = {
