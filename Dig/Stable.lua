@@ -7,8 +7,8 @@ local USE_COROUTINE = true
 
 local CONFIG = {
 	Tolerance = 27, -- Distance tolerance for clicking.
-	WaitWhenClicked = 125, -- Wait time when clicked (miliseconds)
-	WaitWhenNotClicked = 25, -- Wait time when not clicked (miliseconds)
+	WaitWhenClicked = 50, -- Wait time when clicked (miliseconds)
+	WaitWhenNotClicked = 0, -- Wait time when not clicked (miliseconds)
 }
 
 local function logFunc(...)
