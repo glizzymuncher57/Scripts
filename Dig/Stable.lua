@@ -7,6 +7,7 @@ local PlayerGui = Player and Player:find_first_child("PlayerGui")
 
 local DEBUG = true
 local DIGGING = false
+local FILE_NAME = "DigConfig.json"
 
 local CONFIG = {
 	Tolerance = 27, -- Distance tolerance for clicking.
@@ -19,6 +20,7 @@ local nil_instance = nil_instance
 local abs = math.abs
 local floor = math.floor
 local simulate_mouse_click = input.simulate_mouse_click
+local file = file
 
 -- Util based functions
 local function LogFunc(...)
@@ -35,6 +37,30 @@ local function ReturnFirstDescendant(Parent, Name)
 	end
 
 	return nil_instance
+end
+
+--// Config related functions
+local function SaveConfiguration()
+	local ConfigString = table_to_JSON(CONFIG)
+	if not ConfigString then
+		LogFunc("Failed to convert configuration to JSON string.")
+		return
+	end
+
+	if file.exists(FILE_NAME) then
+		file.overwrite(FILE_NAME, ConfigString, "binary")
+	else
+		file.write(FILE_NAME, ConfigString, "binary")
+	end
+end
+
+local function LoadConfiguration()
+	local Exists = file.exists(FILE_NAME)
+	if not Exists then
+		return false
+	end
+
+	return file.read(FILE_NAME)
 end
 
 -- Main Digging Function
@@ -85,6 +111,12 @@ local function StartTheDiggering()
 end
 
 local function Initialise()
+	local LastConfig = LoadConfiguration()
+	if LastConfig then
+		CONFIG = JSON_to_table(LastConfig)
+		LogFunc("Loaded last configuration from file.")
+	end
+
 	local ui = gui.create("Dig Settings", false)
 	ui:set_pos(100, 100)
 	ui:set_size(400, 200)
@@ -92,18 +124,21 @@ local function Initialise()
 	local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
 	slider:change_callback(function()
 		CONFIG.Tolerance = slider:get_value()
+		SaveConfiguration()
 	end)
 
 	local slider2 =
 		ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
 	slider2:change_callback(function()
 		CONFIG.WaitWhenClicked = floor(slider2:get_value())
+		SaveConfiguration()
 	end)
 
 	local slider3 =
 		ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
 	slider3:change_callback(function()
 		CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
+		SaveConfiguration()
 	end)
 
 	hook.addkey(0x51, "Dig", function(KD)
