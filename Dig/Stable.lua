@@ -147,9 +147,14 @@ slider3:change_callback(function()
 	CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
 end)
 
-local checkbox1 = ui:add_checkbox("checkbox1", "Special Spot ESP", SPECIAL_SPOT_ESP)
+local checkbox1 = ui:add_checkbox("checkbox1", "Use Coroutine", USE_COROUTINE)
 checkbox1:change_callback(function()
-	SPECIAL_SPOT_ESP = checkbox1:get_value()
+	USE_COROUTINE = checkbox1:get_value()
+end)
+
+local checkbox2 = ui:add_checkbox("checkbox2", "Special Spot ESP", SPECIAL_SPOT_ESP)
+checkbox2:change_callback(function()
+	SPECIAL_SPOT_ESP = checkbox2:get_value()
 end)
 
 local function Initialise()
@@ -176,9 +181,16 @@ local function Initialise()
 		DIGGING = KD
 
 		if DIGGING then
-			coroutine.resume(coroutine.create(StartTheDiggering))
+			if USE_COROUTINE then
+				coroutine.resume(coroutine.create(StartTheDiggering))
+			else
+				spawn(StartTheDiggering)
+			end
 		end
 	end)
 end
 
-coroutine.resume(coroutine.create(Initialise))
+local S, E = pcall(Initialise)
+if not S then
+	LogFunc(E)
+end
