@@ -12,7 +12,6 @@ local SPECIAL_SPOT_ESP = false
 local SPECIAL_SPOT_PREFIX = "SpecialSpot"
 local SPECIAL_SPOT_COLOUR = color(1, 1, 1, 1)
 
-
 local abs = math.abs
 local floor = math.floor
 local world_to_screen = world_to_screen
@@ -148,52 +147,38 @@ slider3:change_callback(function()
 	CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
 end)
 
-local checkbox1 = ui:add_checkbox("checkbox1", "Use Coroutine", USE_COROUTINE)
+local checkbox1 = ui:add_checkbox("checkbox1", "Special Spot ESP", SPECIAL_SPOT_ESP)
 checkbox1:change_callback(function()
-	USE_COROUTINE = checkbox1:get_value()
-end)
-
-local checkbox2 = ui:add_checkbox("checkbox2", "Special Spot ESP", SPECIAL_SPOT_ESP)
-checkbox2:change_callback(function()
-	SPECIAL_SPOT_ESP = checkbox2:get_value()
+	SPECIAL_SPOT_ESP = checkbox1:get_value()
 end)
 
 local function Initialise()
-	spawn(function()
-		hook.add("render", "DigESP", function()
-			if not SPECIAL_SPOT_ESP then
-				return
-			end
+	hook.add("render", "DigESP", function()
+		if not SPECIAL_SPOT_ESP then
+			return
+		end
 
-			for _, PotentialSpot in pairs(Map:get_children()) do
-				if PotentialSpot.name:sub(1, #SPECIAL_SPOT_PREFIX) == SPECIAL_SPOT_PREFIX then
-					local Part = PotentialSpot:find_first_child("PositionPart")
-					if Part:isvalid() then
-						CreateEspText(
-							Player.character:find_first_child("HumanoidRootPart"),
-							PotentialSpot.name,
-							Part.position
-						)
-					end
+		for _, PotentialSpot in pairs(Map:get_children()) do
+			if PotentialSpot.name:sub(1, #SPECIAL_SPOT_PREFIX) == SPECIAL_SPOT_PREFIX then
+				local Part = PotentialSpot:find_first_child("PositionPart")
+				if Part:isvalid() then
+					CreateEspText(
+						Player.character:find_first_child("HumanoidRootPart"),
+						PotentialSpot.name,
+						Part.position
+					)
 				end
 			end
-		end)
+		end
+	end)
 
-		hook.addkey(0x51, "womp", function(KD)
-			DIGGING = KD
+	hook.addkey(0x51, "womp", function(KD)
+		DIGGING = KD
 
-			if DIGGING then
-				if USE_COROUTINE then
-					coroutine.resume(coroutine.create(StartTheDiggering))
-				else
-					spawn(StartTheDiggering)
-				end
-			end
-		end)
+		if DIGGING then
+			coroutine.resume(coroutine.create(StartTheDiggering))
+		end
 	end)
 end
 
-local S,E = pcall(Initialise)
-if not S then
-    LogFunc(E)
-end
+coroutine.resume(coroutine.create(Initialise))
