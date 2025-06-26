@@ -1,9 +1,7 @@
 local players = game:get_service("Players")
 local localplayer = players.local_player
 
-local VK_SHIFT = 0x10
-local VK_LSHIFT = 0xA0
-local VK_LCTRL = 0xA0
+local VK_LCTRL = 0xA2
 
 local POSITIONS = {
 	[0x5A] = {
@@ -58,7 +56,7 @@ local function Init()
 			end
 
 			TeleportToPosition(Info.Position)
-			og.notification("Teleported to " .. Info.Name, "Info")
+			log.notification("Teleported to " .. Info.Name, "Info")
 		end)
 	end
 end
