@@ -115,7 +115,7 @@ local function Initialise()
 		local LastConfig = LoadConfiguration()
 		if LastConfig then
 			CONFIG = JSON_to_table(LastConfig)
-			LogNoti("Loaded last configuration from file.")
+			LogNoti("Loaded last configuration.")
 		end
 
 		local ui = gui.create("Dig Settings", false)
