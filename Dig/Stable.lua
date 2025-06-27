@@ -39,6 +39,17 @@ local function ReturnFirstDescendant(Parent, Name)
 	return nil_instance
 end
 
+local function CheckElements(Elements)
+	for _, Element in pairs(Elements) do
+		if not Element:isvalid() then
+			LogFunc(Element.name .. " is invalid or does not exist.")
+			return false
+		end
+	end
+
+	return true
+end
+
 --// Config related functions
 local function SaveConfiguration()
 	local ConfigString = table_to_JSON(CONFIG)
@@ -68,22 +79,11 @@ local function StartTheDiggering()
 	-- probably heavily unoptimised to check for the ui every loop but it shouldn't make that much of a diff.
 	while DIGGING do
 		local DigUI = PlayerGui:find_first_child("Dig")
-		if not DigUI:isvalid() then
-			LogFunc("Dig UI became invalid")
-			DIGGING = false
-			return
-		end
-
 		local Area_Strong = ReturnFirstDescendant(DigUI, "Area_Strong")
-		if not Area_Strong:isvalid() then
-			LogFunc("Area_Strong became invalid")
-			DIGGING = false
-			return
-		end
-
 		local PlayerBar = ReturnFirstDescendant(DigUI, "PlayerBar")
-		if not PlayerBar:isvalid() then
-			LogFunc("PlayerBar became invalid")
+
+		if not CheckElements({ DigUI, Area_Strong, PlayerBar }) then
+			LogFunc("One or more required UI elements became invalid.")
 			DIGGING = false
 			return
 		end
