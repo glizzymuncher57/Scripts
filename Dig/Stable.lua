@@ -1,7 +1,3 @@
-local Workspace = game:get_service("Workspace")
-local World = Workspace:find_first_child("World")
-local Map = World and World:find_first_child("Map")
-
 local Player = game:get_service("Players").local_player
 local PlayerGui = Player and Player:find_first_child("PlayerGui")
 
@@ -30,7 +26,7 @@ local function LogFunc(...)
 end
 
 local function LogNoti(...)
-	log.notification("[DIG]: " .. tostring(...))
+	log.notification("[DIG]: " .. tostring(...), "Info")
 end
 
 local function ReturnFirstDescendant(Parent, Name)
@@ -99,7 +95,7 @@ local function StartTheDiggering()
 
 			local Clicked = false
 			if Distance <= CONFIG.Tolerance then
-				input.simulate_mouse_click(MOUSE1)
+				simulate_mouse_click(MOUSE1)
 				Clicked = true
 			end
 
