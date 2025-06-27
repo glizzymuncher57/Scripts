@@ -1,6 +1,6 @@
 local Module = {}
 
-function Module:Test()
+function Module.Test()
     log.notification("HI", "Info)
 end
 
