@@ -25,8 +25,12 @@ local file = file
 -- Util based functions
 local function LogFunc(...)
 	if DEBUG then
-		log.add(..., color(1, 0, 0, 1))
+		log.add("[DIG]: " .. tostring(...), color(1, 0, 0, 1))
 	end
+end
+
+local function LogNoti(...)
+	log.notification("[DIG]: " .. tostring(...))
 end
 
 local function ReturnFirstDescendant(Parent, Name)
@@ -114,7 +118,7 @@ local function Initialise()
 	local LastConfig = LoadConfiguration()
 	if LastConfig then
 		CONFIG = JSON_to_table(LastConfig)
-		LogFunc("Loaded last configuration from file.")
+		LogNoti("Loaded last configuration from file.")
 	end
 
 	local ui = gui.create("Dig Settings", false)
@@ -141,7 +145,7 @@ local function Initialise()
 		SaveConfiguration()
 	end)
 
-	hook.addkey(0x51, "Dig", function(KD)
+	hook.addkey(0x51, "MAIN_KEY_LISTENER", function(KD)
 		DIGGING = KD
 
 		if DIGGING then
@@ -152,5 +156,5 @@ end
 
 local S, E = pcall(Initialise)
 if not S then
-	LogFunc(E)
+	LogFunc("Error during initialisation: " .. tostring(E))
 end
