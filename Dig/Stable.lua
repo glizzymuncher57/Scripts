@@ -71,6 +71,36 @@ local function LoadConfiguration()
 		return false
 	end
 
+    local JsonString
+    local success = pcall(function()
+        JsonString = file.read(FILE_NAME)
+    end)
+
+	if not success then
+		LogFunc("Failed to read configuration file: " .. FILE_NAME)
+		return false
+	end
+
+	local Config
+	local success = pcall(function()
+		Config = JSON_to_table(JsonString)
+	end)
+
+	if not success then
+		LogFunc("Failed to parse configuration JSON: " .. FILE_NAME)
+		return false
+	end
+
+	-- looks fucking awful but it is what it is.
+	CONFIG = {
+		Tolerance = Config.Tolerance or CONFIG.Tolerance,
+		WaitWhenClicked = Config.WaitWhenClicked or CONFIG.WaitWhenClicked,
+		WaitWhenNotClicked = Config.WaitWhenNotClicked or CONFIG.WaitWhenNotClicked
+	}
+
+	return true
+end
+
 	return file.read(FILE_NAME)
 end
 
@@ -112,10 +142,8 @@ end
 
 local function Initialise()
 	local function CreateUI()
-		local LastConfig = LoadConfiguration()
-		if LastConfig then
-			CONFIG = JSON_to_table(LastConfig)
-			LogNoti("Loaded last configuration.")
+		if file.exists(FILE_NAME) then
+			LogFunc(LoadConfiguration() and "Configuration loaded successfully." or "Failed to load configuration.")
 		end
 
 		local ui = gui.create("Dig Settings", false)
