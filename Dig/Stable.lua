@@ -131,7 +131,7 @@ end
 local function Initialise()
 	local function CreateUI()
 		if file.exists(FILE_NAME) then
-			LogFunc(LoadConfiguration() and "Configuration loaded successfully." or "Failed to load configuration.")
+			LogNoti(LoadConfiguration() and "Configuration loaded successfully." or "Failed to load configuration.")
 		end
 
 		local ui = gui.create("Dig Settings", false)
