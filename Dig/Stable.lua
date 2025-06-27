@@ -42,7 +42,7 @@ end
 local function CheckElements(Elements)
 	for _, Element in pairs(Elements) do
 		if not Element:isvalid() then
-			LogFunc(Element.name .. " is invalid or does not exist.")
+			LogFunc(Element.name or "FAILED_TO_LOAD_NAME" .. " is invalid or does not exist.")
 			return false
 		end
 	end
@@ -66,36 +66,27 @@ local function SaveConfiguration()
 end
 
 local function LoadConfiguration()
-	local Exists = file.exists(FILE_NAME)
-	if not Exists then
+	if not file.exists(FILE_NAME) then
 		return false
 	end
 
-    local JsonString
-    local success = pcall(function()
-        JsonString = file.read(FILE_NAME)
-    end)
-
-	if not success then
-		LogFunc("Failed to read configuration file: " .. FILE_NAME)
+	local ReadSuccess, JsonResult = pcall(file.read, FILE_NAME, "binary")
+	if not ReadSuccess then
+		LogFunc("Failed to read configuration file: " .. JsonResult)
 		return false
 	end
 
-	local Config
-	local success = pcall(function()
-		Config = JSON_to_table(JsonString)
-	end)
-
-	if not success then
-		LogFunc("Failed to parse configuration JSON: " .. FILE_NAME)
+	local ParseSuccess, TableResult = pcall(JSON_to_table, JsonResult)
+	if not ParseSuccess then
+		LogFunc("Failed to parse configuration JSON: " .. TableResult)
 		return false
 	end
 
 	-- looks fucking awful but it is what it is.
 	CONFIG = {
-		Tolerance = Config.Tolerance or CONFIG.Tolerance,
-		WaitWhenClicked = Config.WaitWhenClicked or CONFIG.WaitWhenClicked,
-		WaitWhenNotClicked = Config.WaitWhenNotClicked or CONFIG.WaitWhenNotClicked
+		Tolerance = TableResult.Tolerance or CONFIG.Tolerance,
+		WaitWhenClicked = TableResult.WaitWhenClicked or CONFIG.WaitWhenClicked,
+		WaitWhenNotClicked = TableResult.WaitWhenNotClicked or CONFIG.WaitWhenNotClicked,
 	}
 
 	return true
