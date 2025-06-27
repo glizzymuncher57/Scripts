@@ -111,43 +111,53 @@ local function StartTheDiggering()
 end
 
 local function Initialise()
-	local LastConfig = LoadConfiguration()
-	if LastConfig then
-		CONFIG = JSON_to_table(LastConfig)
-		LogNoti("Loaded last configuration from file.")
+	local function CreateUI()
+		local LastConfig = LoadConfiguration()
+		if LastConfig then
+			CONFIG = JSON_to_table(LastConfig)
+			LogNoti("Loaded last configuration from file.")
+		end
+
+		local ui = gui.create("Dig Settings", false)
+		ui:set_pos(100, 100)
+		ui:set_size(400, 200)
+
+		local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
+		slider:change_callback(function()
+			CONFIG.Tolerance = slider:get_value()
+			SaveConfiguration()
+		end)
+
+		local slider2 =
+			ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
+		slider2:change_callback(function()
+			CONFIG.WaitWhenClicked = floor(slider2:get_value())
+			SaveConfiguration()
+		end)
+
+		local slider3 = ui:add_slider(
+			"slider3",
+			"Wait When Not Clicked - Doesn't Support Decimals",
+			0,
+			200,
+			CONFIG.WaitWhenNotClicked
+		)
+		slider3:change_callback(function()
+			CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
+			SaveConfiguration()
+		end)
 	end
 
-	local ui = gui.create("Dig Settings", false)
-	ui:set_pos(100, 100)
-	ui:set_size(400, 200)
-
-	local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
-	slider:change_callback(function()
-		CONFIG.Tolerance = slider:get_value()
-		SaveConfiguration()
-	end)
-
-	local slider2 =
-		ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
-	slider2:change_callback(function()
-		CONFIG.WaitWhenClicked = floor(slider2:get_value())
-		SaveConfiguration()
-	end)
-
-	local slider3 =
-		ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
-	slider3:change_callback(function()
-		CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
-		SaveConfiguration()
-	end)
-
-	hook.addkey(0x51, "MAIN_KEY_LISTENER", function(KD)
-		DIGGING = KD
+	local function InputManager(Keydown)
+		DIGGING = Keydown
 
 		if DIGGING then
 			coroutine.resume(coroutine.create(StartTheDiggering))
 		end
-	end)
+	end
+
+	CreateUI()
+	hook.addkey(0x51, "MAIN_KEY_LISTENER", InputManager)
 end
 
 local S, E = pcall(Initialise)
