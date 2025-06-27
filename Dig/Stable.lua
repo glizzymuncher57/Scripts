@@ -101,9 +101,6 @@ local function LoadConfiguration()
 	return true
 end
 
-	return file.read(FILE_NAME)
-end
-
 -- Main Digging Function
 local function StartTheDiggering()
 	-- probably heavily unoptimised to check for the ui every loop but it shouldn't make that much of a diff.
