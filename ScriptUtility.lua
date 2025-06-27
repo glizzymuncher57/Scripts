@@ -1,7 +1,7 @@
 local Module = {}
 
 function Module:Test()
-    print("Hello World")
+    log.notification("HI", "Info)
 end
 
 return Module
