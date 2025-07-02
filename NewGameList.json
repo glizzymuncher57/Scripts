@@ -8,7 +8,10 @@
   "16541340872": {
     "Dealer ESP": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Clark%20County/Clark%20County%20Dealer%20ESP.lua"
   },
+  "44636121": {
+    "Entity Support": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/The%20Final%20Stand%202/NPC%20Support.lua"
+  },
   "Misc": {
-    "Final Stand 2 NPC Support": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/The%20Final%20Stand%202%20Entity%20NPC%20Support.lua"
+    "EMPTY": ""
   }
 }
