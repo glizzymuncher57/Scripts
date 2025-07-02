@@ -7,7 +7,6 @@ local ID = "UniversalScriptLoader"
 local STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE = "                            %s                            "
 local MM_OPEN = false
 
--- Improved reusable Get function
 local function Get(url, callback)
 	http_get(url, function(body, status)
 		if status ~= 200 then
@@ -17,7 +16,6 @@ local function Get(url, callback)
 	end)
 end
 
--- Logging functions
 local function logFunc(message)
 	log.add(message, color(1, 0, 0, 1))
 end
@@ -26,7 +24,6 @@ local function logNotification(message)
 	log.notification(message, "Info")
 end
 
--- Data loading functions
 local function GetGames(callback)
 	local URL = "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/NewGameList.json"
 
@@ -42,7 +39,6 @@ local function GetGames(callback)
 			return callback(false)
 		end
 
-		-- Process game list
 		Games = {}
 		Misc = result["Misc"] or {}
 
@@ -62,7 +58,6 @@ local function GetGames(callback)
 	end)
 end
 
--- Script loading function
 local function LoadScript(url, onSuccess)
 	Get(url, function(body, err)
 		if err then
@@ -88,7 +83,6 @@ local function LoadScript(url, onSuccess)
 	end)
 end
 
--- GUI functions
 local function CloseMenu()
 	gui.remove(ID)
 	gui.remove(ID .. " - Auto Detection")
@@ -117,7 +111,6 @@ local function CreateAutoDetectionMenu()
 
 	newMenu:add_button("button2", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
 
-	-- Build script list
 	local scriptList = {}
 	for scriptName in pairs(gameScripts) do
 		table.insert(scriptList, scriptName)
@@ -160,7 +153,6 @@ local function CreateMainMenu()
 	menu:add_button("button2", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
 end
 
--- Initialization
 local function Initialise()
 	local success, err = pcall(function()
 		GetGames(function(success)
