@@ -29,16 +29,6 @@ local function LogNoti(...)
 	log.notification("[DIG]: " .. tostring(...), "Info")
 end
 
-local function ReturnFirstDescendant(Parent, Name)
-	for _, Descendant in pairs(Parent:get_descendants()) do
-		if Descendant.name == Name then
-			return Descendant
-		end
-	end
-
-	return nil_instance
-end
-
 local function CheckElements(Elements)
 	for _, Element in pairs(Elements) do
 		if not Element:isvalid() then
@@ -97,8 +87,8 @@ local function StartTheDiggering()
 	-- probably heavily unoptimised to check for the ui every loop but it shouldn't make that much of a diff.
 	while DIGGING do
 		local DigUI = PlayerGui:find_first_child("Dig")
-		local Area_Strong = ReturnFirstDescendant(DigUI, "Area_Strong")
-		local PlayerBar = ReturnFirstDescendant(DigUI, "PlayerBar")
+		local Area_Strong = DigUI:find_first_descendant("Area_Strong")
+		local PlayerBar = DigUI:find_first_descendant("PlayerBar")
 
 		if not CheckElements({ DigUI, Area_Strong, PlayerBar }) then
 			LogFunc("One or more required UI elements became invalid.")
@@ -170,7 +160,9 @@ local function Initialise()
 		DIGGING = Keydown
 
 		if DIGGING then
-			coroutine.resume(coroutine.create(StartTheDiggering))
+			spawn(function()
+				StartTheDiggering()
+			end)
 		end
 	end
 
