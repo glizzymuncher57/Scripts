@@ -109,14 +109,12 @@ local function CreateAutoDetectionMenu()
 	newMenu:set_pos(230, 100)
 	newMenu:set_size(300, 300)
 
-	newMenu:add_button("button2", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
-
 	local scriptList = {}
 	for scriptName in pairs(gameScripts) do
 		table.insert(scriptList, scriptName)
 	end
 
-	local combo = newMenu:add_combo("X", "Select Script", scriptList, 0)
+	local combo = newMenu:add_combo("Select Script", scriptList, 0)
 	combo:change_callback(function()
 		local selectedScript = combo:get_text()
 		local scriptUrl = gameScripts[selectedScript]
@@ -129,17 +127,20 @@ local function CreateAutoDetectionMenu()
 		logNotification("Loading script: " .. selectedScript)
 		LoadScript(scriptUrl, CloseMenu)
 	end)
+
+	newMenu:add_button(STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
 end
 
 local function CreateMainMenu()
 	local menu = gui.create(ID, false)
-	menu:set_size(300, 215)
+	menu:set_size(400, 230)
 	menu:set_pos(100, 100)
 
-	menu:add_button("button1", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Load Script"), CreateAutoDetectionMenu)
-	menu:add_button("Z", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
-	
-	local combo = menu:add_combo("Y", "Select Misc Scripts", MiscComboBoxStrings, 0)
+	menu:add_label("IF YOU GET AN INVALID INSTANCE ERROR, RESTART PHOTON.")
+	menu:add_button(STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Load Script"), CreateAutoDetectionMenu)
+	menu:add_button(STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
+
+	local combo = menu:add_combo("Select Misc Scripts", MiscComboBoxStrings, 0)
 	combo:change_callback(function()
 		local selectedScript = combo:get_text()
 		local scriptUrl = Misc[selectedScript]
