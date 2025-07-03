@@ -1,5 +1,4 @@
 -- Credits to @stallyyyyy (1380683403103571970)
--- Credits to @stallyyyyy (1380683403103571970)
 local Workspace = game:get_service("Workspace")
 local GameMap = Workspace:find_first_child("Map")
 local GameMoney = GameMap and GameMap:find_first_child("BredMakurz")
