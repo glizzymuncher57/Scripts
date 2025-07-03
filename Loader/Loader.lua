@@ -107,7 +107,7 @@ local function CreateAutoDetectionMenu()
 	MM_OPEN = true
 	local newMenu = gui.create(ID .. " - Auto Detection", false)
 	newMenu:set_pos(230, 100)
-	newMenu:set_size(300, 300)
+	newMenu:set_size(325, 325)
 
 	newMenu:add_button("button2", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
 
