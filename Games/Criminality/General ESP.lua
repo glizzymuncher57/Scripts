@@ -1,13 +1,10 @@
--- Services
 local Workspace = game:get_service("Workspace")
 local Players = game:get_service("Players")
 local Player = Players.local_player
 
--- Constants
 local BUTTON_SIZE_FORMAT = "                            %s                            "
 local FILE_NAME = "CriminalityGENESP.json"
 
--- Folders and Parts
 local Map, Filter = Workspace:find_first_child("Map"), Workspace:find_first_child("Filter")
 local Folders = {
 	BredMakurz = Map and Map:find_first_child("BredMakurz"),
@@ -24,7 +21,6 @@ local Parts = {
 	Shopz = "MainPart",
 }
 
--- Static Data
 local DATA = {
 	OBJECTS = {
 		SpawnedPiles = { DisplayName = "Spawned Piles", SinglePart = false },
@@ -35,25 +31,19 @@ local DATA = {
 	},
 }
 
--- User Configurable Settings
-local function make_color(r, g, b, a)
-	return color(r, g, b, a)
-end
 local CONFIGURATION = {
 	MAIN_SETTINGS = { MaxDistance = 500, Enabled = true },
 	OBJECT_SETTINGS = {
-		SpawnedPiles = { Enabled = true, Color = make_color(0, 0, 1, 1) },
-		SpawnedBread = { Enabled = true, Color = make_color(1, 1, 0, 1) },
-		BredMakurz = { Enabled = true, Color = make_color(0, 1, 0, 1) },
-		ATMs = { Enabled = true, Color = make_color(1, 0, 0, 1) },
-		Shopz = { Enabled = true, Color = make_color(1, 0.5, 0, 1) },
+		SpawnedPiles = { Enabled = true, Color = color(0, 0, 1, 1) },
+		SpawnedBread = { Enabled = true, Color = color(1, 1, 0, 1) },
+		BredMakurz = { Enabled = true, Color = color(0, 1, 0, 1) },
+		ATMs = { Enabled = true, Color = color(1, 0, 0, 1) },
+		Shopz = { Enabled = true, Color = color(1, 0.5, 0, 1) },
 	},
 }
 
--- GUI State
 local GUI_STATE = { GS_OPEN = false, OS_OPEN = false }
 
--- Utility Functions
 local floor, world_to_screen, in_screen, render_add_text = math.floor, world_to_screen, in_screen, render.add_text
 local vector2 = vector2
 
@@ -72,11 +62,11 @@ end
 local function BoolToString(bool)
 	return bool and "1" or "0"
 end
+
 local function StringToBool(str)
 	return str == "1"
 end
 
--- Settings Load/Save
 local function LoadSettings()
 	if not file.exists(FILE_NAME) then
 		print("No ESP config file found, using defaults.")
@@ -137,7 +127,6 @@ local function SaveSettings()
 	end
 end
 
--- ESP Render
 local outline_offsets = {
 	vector2(-1, -1),
 	vector2(-1, 1),
@@ -167,7 +156,6 @@ local function CreateEspText(root, name, world_pos, objColor)
 	render_add_text(dist_pos, dist_text, color(1, 1, 1, 1))
 end
 
--- UI
 local function CreateSettingsInterface()
 	local Menu = gui.create("Criminality General ESP", false)
 	Menu:set_pos(100, 100)
@@ -239,7 +227,6 @@ local function CreateSettingsInterface()
 	end)
 end
 
--- Render Hook
 local function HandleRenderHook()
 	local Root = Player.character and Player.character:find_first_child("HumanoidRootPart")
 	if not (Root and Root:isvalid() and CONFIGURATION.MAIN_SETTINGS.Enabled) then
@@ -308,7 +295,6 @@ local function HandleRenderHook()
 	end
 end
 
--- Initialisation
 local function Initialise()
 	if not LoadSettings() then
 		print("Failed to load settings, using defaults.")
