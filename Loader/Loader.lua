@@ -138,7 +138,7 @@ local function CreateMainMenu()
 
 	menu:add_button("button1", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Load Script"), CreateAutoDetectionMenu)
 
-	local combo = menu:add_combo("combo1", "Select Misc Scripts", MiscComboBoxStrings, 0)
+	local combo = menu:add_combo("Y", "Select Misc Scripts", MiscComboBoxStrings, 0)
 	combo:change_callback(function()
 		local selectedScript = combo:get_text()
 		local scriptUrl = Misc[selectedScript]
@@ -150,7 +150,7 @@ local function CreateMainMenu()
 		end
 	end)
 
-	menu:add_button("button2", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
+	menu:add_button("Z", STUPID_HACKY_SOLUTION_FOR_BUTTON_SIZE:format("Cancel"), CloseMenu)
 end
 
 local function Initialise()
