@@ -1,17 +1,18 @@
 {
-  "126884695634066": {
-    "Teleports": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Grow%20A%20Garden/Grow%20A%20Garden%20Teleports.lua"
-  },
-  "7218065222": {
-    "Auto Dig": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Dig/Dig%20Auto%20Dig.lua"
-  },
-  "16541340872": {
-    "Dealer ESP": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Clark%20County/Clark%20County%20Dealer%20ESP.lua"
-  },
-  "44636121": {
-    "Entity Support": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/The%20Final%20Stand%202/NPC%20Support.lua"
-  },
-  "Misc": {
-    "China Hat": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/China%20Hat.lua"
-  }
+    "44636121": {
+        "Entity Support": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/The%20Final%20Stand%202/NPC%20Support.lua"
+    },
+    "126884695634066": {
+        "Teleports": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Grow%20A%20Garden/Grow%20A%20Garden%20Teleports.lua"
+    },
+    "7218065222": {
+        "Auto Dig": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Dig/Dig%20Auto%20Dig.lua"
+    },
+    "16541340872": {
+        "Dealer ESP": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Clark%20County/Clark%20County%20Dealer%20ESP.lua"
+    },
+    "Misc": {
+        "China Hat": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/China%20Hat.lua",
+        "FOV Zoom (Q Key)": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/Zoom%20FOV.lua"
+    }
 }
