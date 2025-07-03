@@ -8,7 +8,7 @@ local current_fov = default_fov
 local transition_speed = 10
 local is_zooming = false
 
-log.notification("Loaded. Press Z to zoom.)
+log.notification("Loaded. Press Z to zoom.", "Info")
 
 hook.add("render", "zoom_fov", function()
     if input.key_down(0x5A) then
