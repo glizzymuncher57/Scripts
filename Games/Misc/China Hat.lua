@@ -4,14 +4,13 @@ local settings = {
 	["radius"] = 2,
 	["height"] = 1.5,
 	["head_offset"] = 0.5,
-
 	["rainbow"] = true,
-
 	["chunk"] = 5,
 }
 
 local localplayer = game:get_service("Players").local_player
 local hue = 0
+local FILE_NAME = "china_hat_settings.json"
 
 local hsv_to_rgb = function(h, s, v)
 	local c = v * s
@@ -49,7 +48,7 @@ local render_shit = function()
 		return
 	end
 
-	local origin = head.position
+	local origin = local_character:isvalid() and head.position or vector3(0, 0, 0)
 
 	local screen_pos = world_to_screen(origin:add(vector3(0, settings["height"] + settings["head_offset"], 0)))
 	if screen_pos:out_of_screen() then
@@ -89,38 +88,94 @@ local render_shit = function()
 	end
 end
 
-local menu = gui.create("China Hat Settings", false)
-menu:set_pos(100, 100)
-menu:set_size(200, 150)
+local savesettings = function()
+	local ConfigString = table_to_JSON(settings)
+	if not ConfigString then
+		return
+	end
 
-local button = menu:add_button("chinabutton1", "Remove China Hat", function()
-	hook.remove("render", "china_hat")
-	gui.remove("China Hat Settings")
-end)
+	if file.exists(FILE_NAME) then
+		file.overwrite(FILE_NAME, ConfigString, "binary")
+	else
+		file.write(FILE_NAME, ConfigString, "binary")
+	end
+end
 
-local radius_slider = menu:add_slider("chinaradius", "Radius", 1, 15, settings["radius"])
-radius_slider:change_callback(function()
-	settings["radius"] = radius_slider:get_value()
-end)
+local loadsettings = function()
+	if not file.exists(FILE_NAME) then
+		return false
+	end
 
-local height_slider = menu:add_slider("chinaheight", "Height", 0.5, 5, settings["height"])
-height_slider:change_callback(function()
-	settings["height"] = height_slider:get_value()
-end)
+	local ReadSuccess, JsonResult = pcall(file.read, FILE_NAME, "binary")
+	if not ReadSuccess then
+		LogFunc("Failed to read configuration file: " .. JsonResult)
+		return false
+	end
 
-local head_offset_slider = menu:add_slider("chinaheadoffset", "Head Offset", 0, 2, settings["head_offset"])
-head_offset_slider:change_callback(function()
-	settings["head_offset"] = head_offset_slider:get_value()
-end)
+	local ParseSuccess, TableResult = pcall(JSON_to_table, JsonResult)
+	if not ParseSuccess then
+		LogFunc("Failed to parse configuration JSON: " .. TableResult)
+		return false
+	end
 
-local rainbow_checkbox = menu:add_checkbox("chinarainbow", "Rainbow", settings["rainbow"])
-rainbow_checkbox:change_callback(function()
-	settings["rainbow"] = rainbow_checkbox:get_value()
-end)
+	settings = {
+		radius = TableResult.radius or settings["radius"],
+		height = TableResult.height or settings["height"],
+		head_offset = TableResult.head_offset or settings["head_offset"],
+		rainbow = TableResult.rainbow or settings["rainbow"],
+		chunk = TableResult.chunk or settings["chunk"],
+	}
 
-local chunk_slider = menu:add_slider("chinachunk", "Chunk Size", 1, 20, settings["chunk"])
-chunk_slider:change_callback(function()
-	settings["chunk"] = chunk_slider:get_value()
-end)
+	return true
+end
 
-hook.add("render", "china_hat", render_shit)
+local function init()
+	loadsettings()
+
+	hook.add("render", "china_hat", render_shit)
+
+	local menu = gui.create("China Hat Settings - IF YOU DIE THIS WILL CRASH!", false)
+	menu:set_pos(100, 100)
+	menu:set_size(340, 340)
+
+	local warning_button = menu:add_button("chinabutton2", "WARNING: THIS WILL CRASH IF YOU DIE", function()
+		log.notification("Lol Retard Why Press this", "Info")
+	end)
+
+	local button = menu:add_button("chinabutton1", "Remove China Hat", function()
+		hook.remove("render", "china_hat")
+		gui.remove("China Hat Settings - IF YOU DIE THIS WILL CRASH!")
+	end)
+
+	local radius_slider = menu:add_slider("chinaradius", "Radius", 1, 15, settings["radius"])
+	radius_slider:change_callback(function()
+		settings["radius"] = radius_slider:get_value()
+		savesettings()
+	end)
+
+	local height_slider = menu:add_slider("chinaheight", "Height", 0.5, 5, settings["height"])
+	height_slider:change_callback(function()
+		settings["height"] = height_slider:get_value()
+		savesettings()
+	end)
+
+	local head_offset_slider = menu:add_slider("chinaheadoffset", "Head Offset", 0, 2, settings["head_offset"])
+	head_offset_slider:change_callback(function()
+		settings["head_offset"] = head_offset_slider:get_value()
+		savesettings()
+	end)
+
+	local rainbow_checkbox = menu:add_checkbox("chinarainbow", "Rainbow", settings["rainbow"])
+	rainbow_checkbox:change_callback(function()
+		settings["rainbow"] = rainbow_checkbox:get_value()
+		savesettings()
+	end)
+
+	local chunk_slider = menu:add_slider("chinachunk", "Chunk Size", 1, 20, settings["chunk"])
+	chunk_slider:change_callback(function()
+		settings["chunk"] = chunk_slider:get_value()
+		savesettings()
+	end)
+end
+
+init()
