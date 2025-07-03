@@ -284,7 +284,6 @@ local function HandleRenderHook()
 					})[safeName] or safeName
 					CreateEspText(Root, displayName, ObjectPart.position, objectSettings.Color)
 				elseif objectFolderName == "Shopz" then
-					print("Shopz ESP")
 					local Type = Object:find_first_child("Type")
 					if Type and Type:isvalid() then
 						local TypeString = Type:get_value_string()
