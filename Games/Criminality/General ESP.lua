@@ -14,12 +14,14 @@ local Folders = {
 	ATMs = Map and Map:find_first_child("ATMz"),
 	SpawnedPiles = Filter and Filter:find_first_child("SpawnedPiles"),
 	SpawnedBread = Filter and Filter:find_first_child("SpawnedBread"),
+	Shopz = Map and Map:find_first_child("Shopz"),
 }
 local Parts = {
 	ATMs = "MainPart",
 	BredMakurz = "MainPart",
 	SpawnedPiles = "MeshPart",
 	SpawnedBread = "MainPart",
+	Shopz = "MainPart",
 }
 
 -- Static Data
@@ -29,6 +31,7 @@ local DATA = {
 		SpawnedBread = { DisplayName = "Dropped Cash", SinglePart = true },
 		BredMakurz = { DisplayName = "Safes", SinglePart = false },
 		ATMs = { DisplayName = "ATMs", SinglePart = false },
+		Shopz = { DisplayName = "Dealers", SinglePart = false },
 	},
 }
 
@@ -43,6 +46,7 @@ local CONFIGURATION = {
 		SpawnedBread = { Enabled = true, Color = make_color(1, 1, 0, 1) },
 		BredMakurz = { Enabled = true, Color = make_color(0, 1, 0, 1) },
 		ATMs = { Enabled = true, Color = make_color(1, 0, 0, 1) },
+		Shopz = { Enabled = true, Color = make_color(1, 0.5, 0, 1) },
 	},
 }
 
@@ -263,6 +267,7 @@ local function HandleRenderHook()
 				if Distance > CONFIGURATION.MAIN_SETTINGS.MaxDistance then
 					goto inner_continue
 				end
+
 				if objectFolderName == "BredMakurz" then
 					local Values = Object:find_first_child("Values")
 					if Values and Values:isvalid() then
@@ -278,6 +283,17 @@ local function HandleRenderHook()
 						MediumSafe = "Medium Safe",
 					})[safeName] or safeName
 					CreateEspText(Root, displayName, ObjectPart.position, objectSettings.Color)
+				elseif objectFolderName == "Shopz" then
+					print("Shopz ESP")
+					local Type = Object:find_first_child("Type")
+					if Type and Type:isvalid() then
+						local TypeString = Type:get_value_string()
+						local DisplayName = ({
+							IllegalStore = "Illegal Dealer",
+							LegalStore = "Armory Dealer",
+						})[TypeString] or TypeString
+						CreateEspText(Root, DisplayName, ObjectPart.position, objectSettings.Color)
+					end
 				else
 					CreateEspText(
 						Root,
