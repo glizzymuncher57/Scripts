@@ -1,6 +1,7 @@
 local Workspace = game:get_service("Workspace")
 local Players = game:get_service("Players")
 local Player = Players.local_player
+local PlayerGui = Player:find_first_child("PlayerGui")
 
 local BUTTON_SIZE_FORMAT = "                            %s                            "
 local FILE_NAME = "CriminalityGENESP.json"
@@ -32,7 +33,7 @@ local DATA = {
 }
 
 local CONFIGURATION = {
-	MAIN_SETTINGS = { MaxDistance = 500, Enabled = true },
+	MAIN_SETTINGS = { MaxDistance = 500, Enabled = true, AUTO_PICK = false },
 	OBJECT_SETTINGS = {
 		SpawnedPiles = { Enabled = true, Color = color(0, 0, 1, 1) },
 		SpawnedBread = { Enabled = true, Color = color(1, 1, 0, 1) },
@@ -41,6 +42,8 @@ local CONFIGURATION = {
 		Shopz = { Enabled = true, Color = color(1, 0.5, 0, 1) },
 	},
 }
+
+local Picking = false
 
 local GUI_STATE = { GS_OPEN = false, OS_OPEN = false }
 
@@ -133,6 +136,7 @@ local outline_offsets = {
 	vector2(1, -1),
 	vector2(1, 1),
 }
+
 local function CreateEspText(root, name, world_pos, objColor)
 	local dist = GetDistance(root.position, world_pos)
 	if dist <= 5 then
@@ -156,6 +160,55 @@ local function CreateEspText(root, name, world_pos, objColor)
 	render_add_text(dist_pos, dist_text, color(1, 1, 1, 1))
 end
 
+local function IsPicking()
+	return PlayerGui
+		and PlayerGui:find_first_child("LockpickGUI")
+		and PlayerGui:find_first_child("LockpickGUI"):isvalid()
+end
+
+local function DoThePicking()
+	if Picking then
+		return
+	end
+
+	Picking = true
+
+	-- Declare stuff out of loop
+	local LockpickGui = PlayerGui:find_first_child("LockpickGUI"):find_first_child("MF"):find_first_child("LP_Frame")
+	local Bars = LockpickGui:find_first_child("Frames")
+	local Line = LockpickGui:find_first_child("Line")
+
+	local NumberOfBars = 0
+	local CurrentBarNum = 1
+
+	for _, v in pairs(Bars:get_children()) do
+		if v:isvalid() and v.name:find("B") then
+			NumberOfBars = NumberOfBars + 1
+		end
+	end
+
+	while IsPicking() do
+		local BarFrame = Bars:find_first_child("B" .. CurrentBarNum)
+		local CurrentBar = BarFrame:find_first_child("Bar"):find_first_child("Selection")
+
+		local CurrentBarPos = CurrentBar.gui_position + (CurrentBar.gui_size / 2)
+		local LinePos = Line.gui_position + (Line.gui_size / 2)
+		local Distance = math.abs(CurrentBarPos.y - LinePos.y)
+		local PosV = BarFrame:find_first_child("Bar"):find_first_child("PosV")
+
+		local Clicked = false
+		if Distance <= 15 then
+			CurrentBarNum = CurrentBarNum + 1
+			input.simulate_mouse_click(MOUSE1)
+			Clicked = true
+		end
+
+		wait(Clicked and 500 or 10)
+	end
+
+	Picking = false
+end
+
 local function CreateSettingsInterface()
 	local Menu = gui.create("Criminality General ESP", false)
 	Menu:set_pos(100, 100)
@@ -176,6 +229,11 @@ local function CreateSettingsInterface()
 		GeneralSettingsMenu:add_button(BUTTON_SIZE_FORMAT:format("  Close  "), function()
 			gui.remove("Criminality General ESP Settings")
 			GUI_STATE.GS_OPEN = false
+		end)
+		local AutoLockpickCheckbox =
+			GeneralSettingsMenu:add_checkbox("Auto Lockpick Enabled", CONFIGURATION.MAIN_SETTINGS.AUTO_PICK)
+		AutoLockpickCheckbox:change_callback(function()
+			CONFIGURATION.MAIN_SETTINGS.AUTO_PICK = AutoLockpickCheckbox:get_value()
 		end)
 		local MaxDistanceSlider =
 			GeneralSettingsMenu:add_slider("Max Distance", 100, 9999, CONFIGURATION.MAIN_SETTINGS.MaxDistance)
@@ -304,6 +362,24 @@ local function Initialise()
 		local s, e = pcall(HandleRenderHook)
 		if not s then
 			print("Error occurred while rendering ESP:", e)
+		end
+
+		local s, e = pcall(function()
+			if not IsPicking() then
+				return
+			end
+
+			if CONFIGURATION.MAIN_SETTINGS.AUTO_PICK then
+				if not Picking then
+					DoThePicking()
+				end
+			else
+				Picking = false
+			end
+		end)
+
+		if not s then
+			print("Error occurred while handling picking:", e)
 		end
 	end)
 end
