@@ -172,8 +172,8 @@ local function DoThePicking()
 	end
 
 	Picking = true
-	local Reactivate_When_Finished = MAIN_SETTINGS.CONFIGURATION.Enabled
-	MAIN_SETTINGS.CONFIGURATION.Enabled = false
+	local Reactivate_When_Finished = CONFIGURATION.MAIN_SETTINGS.Enabled
+	CONFIGURATION.MAIN_SETTINGS.Enabled = false
 
 	-- Declare stuff out of loop
 	local LockpickGui = PlayerGui:find_first_child("LockpickGUI"):find_first_child("MF"):find_first_child("LP_Frame")
@@ -210,7 +210,7 @@ local function DoThePicking()
 
 	Picking = false
 	if Reactivate_When_Finished then
-		MAIN_SETTINGS.CONFIGURATION.Enabled = true
+		CONFIGURATION.MAIN_SETTINGS.Enabled = true
 	end
 end
 
