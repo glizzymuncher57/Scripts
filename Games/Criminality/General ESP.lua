@@ -166,14 +166,23 @@ local function IsPicking()
 		and PlayerGui:find_first_child("LockpickGUI"):isvalid()
 end
 
+local function CheckElements(Elements)
+	for _, Element in pairs(Elements) do
+		if not Element:isvalid() then
+			LogFunc(Element.name or "FAILED_TO_LOAD_NAME" .. " is invalid or does not exist.")
+			return false
+		end
+	end
+
+	return true
+end
+
 local function DoThePicking()
 	if Picking then
 		return
 	end
 
 	Picking = true
-	local Reactivate_When_Finished = CONFIGURATION.MAIN_SETTINGS.Enabled
-	CONFIGURATION.MAIN_SETTINGS.Enabled = false
 
 	-- Declare stuff out of loop
 	local LockpickGui = PlayerGui:find_first_child("LockpickGUI"):find_first_child("MF"):find_first_child("LP_Frame")
@@ -189,9 +198,14 @@ local function DoThePicking()
 		end
 	end
 
-	while IsPicking() do
+	while IsPicking() and Picking do
 		local BarFrame = Bars:find_first_child("B" .. CurrentBarNum)
 		local CurrentBar = BarFrame:find_first_child("Bar"):find_first_child("Selection")
+
+		if not CheckElements({ LockpickGUI, Bars, Line, BarFrame, CurrentBar }) then
+			Picking = false
+			return
+		end
 
 		local CurrentBarPos = CurrentBar.gui_position + (CurrentBar.gui_size / 2)
 		local LinePos = Line.gui_position + (Line.gui_size / 2)
@@ -209,9 +223,6 @@ local function DoThePicking()
 	end
 
 	Picking = false
-	if Reactivate_When_Finished then
-		CONFIGURATION.MAIN_SETTINGS.Enabled = true
-	end
 end
 
 local function CreateSettingsInterface()
