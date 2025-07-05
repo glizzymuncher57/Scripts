@@ -174,6 +174,7 @@ local function LockpickLoop()
 end
 
 -- Settings functions
+--TODO: Rewrite these functions and get it to work with booleans.
 local function ColorToTable(col)
 	return { r = col.r, g = col.g, b = col.b, a = col.a }
 end
@@ -397,7 +398,9 @@ local function CreateSettingsInterface()
 		gui.remove("Criminality General ESP")
 		gui.remove("Criminality General ESP Settings")
 		gui.remove("Criminality General ESP Object Settings")
-		GUI_STATE.GS_OPEN, GUI_STATE.OS_OPEN = false, false
+		GUI_STATE.GS_OPEN = false
+		GUI_STATE.OS_OPEN = false
+		Picking = false
 	end)
 end
 
@@ -405,6 +408,7 @@ local function Initialise()
 	if not LoadSettings() then
 		print("Failed to load settings, using defaults.")
 	end
+
 	CreateSettingsInterface()
 
 	hook.add("render", "Crim_Gen_ESP", function()
