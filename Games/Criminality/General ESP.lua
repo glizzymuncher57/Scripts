@@ -46,7 +46,7 @@ local OBJECT_HANDLERS = {
 		if Values and Values:isvalid() then
 			local Broken = Values:find_first_child("Broken")
 			if Broken and Broken:isvalid() and Broken:get_value_bool() then
-				return nil_instance
+				return
 			end
 		end
 
