@@ -16,11 +16,60 @@ local Folders = {
 }
 local DATA = {
 	OBJECTS = {
-		SpawnedPiles = { DisplayName = "Spawned Piles", SinglePart = false, Part = "MeshPart" },
+		SpawnedPiles = {
+			DisplayName = "Spawned Piles",
+			SinglePart = false,
+			Part = "MeshPart",
+			Handler = function(Object)
+				return ({
+					S1 = "Spawned Pile",
+					S2 = "Spawned Pile",
+					C1 = "Spawned Crate",
+				})[Object.name] or "Spawned Pile"
+			end,
+		},
+
+		BredMakurz = {
+			DisplayName = "Safes",
+			SinglePart = false,
+			Part = "MainPart",
+			Handler = function(Object)
+				local Values = Object:find_first_child("Values")
+				if Values and Values:isvalid() then
+					local Broken = Values:find_first_child("Broken")
+					if Broken and Broken:isvalid() and Broken:get_value_bool() then
+						return
+					end
+				end
+
+				local safeName = Object.name:match("^(%w+)") or Object.name
+				return ({
+					Register = "Cash Register",
+					SmallSafe = "Small Safe",
+					MediumSafe = "Medium Safe",
+				})[safeName] or safeName
+			end,
+		},
+
+		Shopz = {
+			DisplayName = "Dealers",
+			SinglePart = false,
+			Part = "MainPart",
+			Handler = function(Object)
+				local Type = Object:find_first_child("Type")
+				if Type and Type:isvalid() then
+					local TypeString = Type:get_value_string()
+					return ({
+						IllegalStore = "Illegal Dealer",
+						LegalStore = "Armory Dealer",
+					})[TypeString] or TypeString
+				end
+				return "Dealer"
+			end,
+		},
+
 		SpawnedBread = { DisplayName = "Dropped Cash", SinglePart = true, Part = "MainPart" },
-		BredMakurz = { DisplayName = "Safes", SinglePart = false, Part = "MainPart" },
 		ATMs = { DisplayName = "ATMs", SinglePart = false, Part = "MainPart" },
-		Shopz = { DisplayName = "Dealers", SinglePart = false, Part = "MainPart" },
 	},
 }
 local CONFIGURATION = {
@@ -32,44 +81,6 @@ local CONFIGURATION = {
 		ATMs = { Enabled = true, Color = color(1, 0, 0, 1) },
 		Shopz = { Enabled = true, Color = color(1, 0.5, 0, 1) },
 	},
-}
-local OBJECT_HANDLERS = {
-	BredMakurz = function(Object, ObjectPart)
-		local Values = Object:find_first_child("Values")
-		if Values and Values:isvalid() then
-			local Broken = Values:find_first_child("Broken")
-			if Broken and Broken:isvalid() and Broken:get_value_bool() then
-				return
-			end
-		end
-
-		local safeName = Object.name:match("^(%w+)") or Object.name
-		return ({
-			Register = "Cash Register",
-			SmallSafe = "Small Safe",
-			MediumSafe = "Medium Safe",
-		})[safeName] or safeName
-	end,
-
-	Shopz = function(Object)
-		local Type = Object:find_first_child("Type")
-		if Type and Type:isvalid() then
-			local TypeString = Type:get_value_string()
-			return ({
-				IllegalStore = "Illegal Dealer",
-				LegalStore = "Armory Dealer",
-			})[TypeString] or TypeString
-		end
-		return "Dealer"
-	end,
-
-		SpawnedPiles = function(Object)
-		return ({
-			["S1"] = "Spawned Pile",
-			["S2"] = "Spawned Pile",
-			["C1"] = "Spawned Crate",
-		})[Object.name] or "Spawned Pile"
-	end,
 }
 
 local Picking = false
@@ -83,10 +94,10 @@ local function LogFunc(message)
 	print("[Criminality ESP] " .. message)
 end
 
-local function SafeCall(func, ...)
+local function SafeCall(func, funcName, ...)
 	local success, result = pcall(func, ...)
 	if not success then
-		LogFunc(("Error in %s: %s"):format(tostring(func), tostring(result)))
+		LogFunc(("Error in %s: %s"):format(tostring(funcName), tostring(result)))
 		return nil
 	end
 	return result
@@ -316,7 +327,7 @@ local function HandleRenderHook()
 					goto inner_continue
 				end
 
-				local Handler = OBJECT_HANDLERS[objectFolderName]
+				local Handler = objectData["Handler"]
 				if Handler then
 					local DisplayName = Handler(Object, ObjectPart)
 					if DisplayName then
@@ -424,9 +435,9 @@ local function Initialise()
 	CreateSettingsInterface()
 
 	hook.add("render", "Crim_Gen_ESP", function()
-		SafeCall(HandleRenderHook)
-		SafeCall(LockpickLoop)
+		SafeCall(HandleRenderHook, "Render Hook")
+		SafeCall(LockpickLoop, "Lockpick Loop")
 	end)
 end
 
-SafeCall(Initialise)
+SafeCall(Initialise, "Initialise")
