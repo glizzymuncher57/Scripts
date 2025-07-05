@@ -21,7 +21,6 @@ local Parts = {
 	SpawnedBread = "MainPart",
 	Shopz = "MainPart",
 }
-
 local DATA = {
 	OBJECTS = {
 		SpawnedPiles = { DisplayName = "Spawned Piles", SinglePart = false },
@@ -31,7 +30,6 @@ local DATA = {
 		Shopz = { DisplayName = "Dealers", SinglePart = false },
 	},
 }
-
 local CONFIGURATION = {
 	MAIN_SETTINGS = { MaxDistance = 500, Enabled = true, AUTO_PICK = false },
 	OBJECT_SETTINGS = {
@@ -42,18 +40,140 @@ local CONFIGURATION = {
 		Shopz = { Enabled = true, Color = color(1, 0.5, 0, 1) },
 	},
 }
+local OBJECT_HANDLERS = {
+	BredMakurz = function(Object, ObjectPart)
+		local Values = Object:find_first_child("Values")
+		if Values and Values:isvalid() then
+			local Broken = Values:find_first_child("Broken")
+			if Broken and Broken:isvalid() and Broken:get_value_bool() then
+				return nil_instance
+			end
+		end
+
+		local safeName = Object.name:match("^(%w+)") or Object.name
+		return ({
+			Register = "Cash Register",
+			SmallSafe = "Small Safe",
+			MediumSafe = "Medium Safe",
+		})[safeName] or safeName
+	end,
+
+	Shopz = function(Object)
+		local Type = Object:find_first_child("Type")
+		if Type and Type:isvalid() then
+			local TypeString = Type:get_value_string()
+			return ({
+				IllegalStore = "Illegal Dealer",
+				LegalStore = "Armory Dealer",
+			})[TypeString] or TypeString
+		end
+		return "Dealer"
+	end,
+}
 
 local Picking = false
-
 local GUI_STATE = { GS_OPEN = false, OS_OPEN = false }
-
+local outline_offsets = { vector2(-1, -1), vector2(-1, 1), vector2(1, -1), vector2(1, 1) }
 local floor, world_to_screen, in_screen, render_add_text = math.floor, world_to_screen, in_screen, render.add_text
 local vector2 = vector2
+
+-- Utility functions
+local function LogFunc(message)
+	print("[Criminality ESP] " .. message)
+end
+
+local function SafeCall(func, ...)
+	local success, result = pcall(func, ...)
+	if not success then
+		LogFunc(("Error in %s: %s"):format(tostring(func), tostring(result)))
+		return nil
+	end
+	return result
+end
 
 local function GetDistance(pos1, pos2)
 	return floor((pos1 - pos2):length())
 end
 
+-- Lockpicking functions
+local function IsPicking()
+	return PlayerGui
+		and PlayerGui:find_first_child("LockpickGUI")
+		and PlayerGui:find_first_child("LockpickGUI"):isvalid()
+end
+
+local function DoThePicking()
+	if Picking then
+		return
+	end
+
+	Picking = true
+
+	local NumberOfBars = 0
+	local CurrentBarNum = 1
+
+	local LockpickGui = PlayerGui:find_first_child("LockpickGUI"):find_first_child("MF"):find_first_child("LP_Frame")
+	if not LockpickGui:isvalid() then
+		Picking = false
+		return
+	end
+
+	local Bars = LockpickGui:find_first_child("Frames")
+	local Line = LockpickGui:find_first_child("Line")
+
+	if not CheckElements({ Bars, Line }) then
+		Picking = false
+		return
+	end
+
+	for _, v in pairs(Bars:get_children()) do
+		if v:isvalid() and v.name:find("B") then
+			NumberOfBars = NumberOfBars + 1
+		end
+	end
+
+	while IsPicking() and Picking do
+		local BarFrame = Bars:find_first_child("B" .. CurrentBarNum)
+		local CurrentBar = BarFrame:find_first_child("Bar"):find_first_child("Selection")
+
+		if not CheckElements({ LockpickGUI, Bars, Line, BarFrame, CurrentBar }) then
+			Picking = false
+			return
+		end
+
+		local CurrentBarPos = CurrentBar.gui_position + (CurrentBar.gui_size / 2)
+		local LinePos = Line.gui_position + (Line.gui_size / 2)
+		local Distance = math.abs(CurrentBarPos.y - LinePos.y)
+		local PosV = BarFrame:find_first_child("Bar"):find_first_child("PosV")
+
+		local Clicked = false
+		if Distance <= 15 then
+			CurrentBarNum = CurrentBarNum + 1
+			input.simulate_mouse_click(MOUSE1)
+			Clicked = true
+		end
+
+		wait(Clicked and 500 or 10)
+	end
+
+	Picking = false
+end
+
+local function LockpickLoop()
+	if not IsPicking() then
+		return
+	end
+
+	if CONFIGURATION.MAIN_SETTINGS.AUTO_PICK then
+		if not Picking then
+			DoThePicking()
+		end
+	else
+		Picking = false
+	end
+end
+
+-- Settings functions
 local function ColorToTable(col)
 	return { r = col.r, g = col.g, b = col.b, a = col.a }
 end
@@ -130,13 +250,7 @@ local function SaveSettings()
 	end
 end
 
-local outline_offsets = {
-	vector2(-1, -1),
-	vector2(-1, 1),
-	vector2(1, -1),
-	vector2(1, 1),
-}
-
+-- Render functions
 local function CreateEspText(root, name, world_pos, objColor)
 	local dist = GetDistance(root.position, world_pos)
 	if dist <= 5 then
@@ -150,90 +264,67 @@ local function CreateEspText(root, name, world_pos, objColor)
 	local name_size, dist_size = render.get_text_size(name), render.get_text_size(dist_text)
 	local name_pos = vector2(screen_pos.x - name_size.x / 2, screen_pos.y)
 	local dist_pos = vector2(screen_pos.x - dist_size.x / 2, screen_pos.y + name_size.y + 3)
+
 	for _, offset in ipairs(outline_offsets) do
 		render_add_text(name_pos + offset, name, color(0, 0, 0, 1))
-	end
-	render_add_text(name_pos, name, objColor)
-	for _, offset in ipairs(outline_offsets) do
 		render_add_text(dist_pos + offset, dist_text, color(0, 0, 0, 1))
 	end
+
+	render_add_text(name_pos, name, objColor)
 	render_add_text(dist_pos, dist_text, color(1, 1, 1, 1))
 end
 
-local function IsPicking()
-	return PlayerGui
-		and PlayerGui:find_first_child("LockpickGUI")
-		and PlayerGui:find_first_child("LockpickGUI"):isvalid()
-end
-
-local function CheckElements(Elements)
-	for _, Element in pairs(Elements) do
-		if not Element:isvalid() then
-			LogFunc(Element.name or "FAILED_TO_LOAD_NAME" .. " is invalid or does not exist.")
-			return false
-		end
-	end
-
-	return true
-end
-
-local function DoThePicking()
-	if Picking then
+local function HandleRenderHook()
+	local Root = Player.character and Player.character:find_first_child("HumanoidRootPart")
+	if not (Root and Root:isvalid() and CONFIGURATION.MAIN_SETTINGS.Enabled) then
 		return
 	end
-
-	Picking = true
-
-	local NumberOfBars = 0
-	local CurrentBarNum = 1
-
-	local LockpickGui = PlayerGui:find_first_child("LockpickGUI"):find_first_child("MF"):find_first_child("LP_Frame")
-	if not LockpickGui:isvalid() then
-		Picking = false
-		return
-	end
-
-	local Bars = LockpickGui:find_first_child("Frames")
-	local Line = LockpickGui:find_first_child("Line")
-
-	if not CheckElements({ Bars, Line }) then
-		Picking = false
-		return
-	end
-
-	for _, v in pairs(Bars:get_children()) do
-		if v:isvalid() and v.name:find("B") then
-			NumberOfBars = NumberOfBars + 1
+	for objectFolderName, objectSettings in pairs(CONFIGURATION.OBJECT_SETTINGS) do
+		if not objectSettings.Enabled then
+			goto continue
 		end
-	end
-
-	while IsPicking() and Picking do
-		local BarFrame = Bars:find_first_child("B" .. CurrentBarNum)
-		local CurrentBar = BarFrame:find_first_child("Bar"):find_first_child("Selection")
-
-		if not CheckElements({ LockpickGUI, Bars, Line, BarFrame, CurrentBar }) then
-			Picking = false
-			return
+		local MapObject = Folders[objectFolderName]
+		if not (MapObject and MapObject:isvalid()) then
+			goto continue
 		end
 
-		local CurrentBarPos = CurrentBar.gui_position + (CurrentBar.gui_size / 2)
-		local LinePos = Line.gui_position + (Line.gui_size / 2)
-		local Distance = math.abs(CurrentBarPos.y - LinePos.y)
-		local PosV = BarFrame:find_first_child("Bar"):find_first_child("PosV")
+		local objectData, partName = DATA.OBJECTS[objectFolderName], Parts[objectFolderName]
+		for _, Object in pairs(MapObject:get_children()) do
+			if Object and Object:isvalid() then
+				local IsSinglePart = objectData.SinglePart
+				local ObjectPart = IsSinglePart and Object
+					or Object:find_first_child(partName)
+					or Object:find_first_child_class("BasePart")
+				if not (ObjectPart and ObjectPart:isvalid()) then
+					goto inner_continue
+				end
+				local Distance = GetDistance(ObjectPart.position, Root.position)
+				if Distance > CONFIGURATION.MAIN_SETTINGS.MaxDistance then
+					goto inner_continue
+				end
 
-		local Clicked = false
-		if Distance <= 15 then
-			CurrentBarNum = CurrentBarNum + 1
-			input.simulate_mouse_click(MOUSE1)
-			Clicked = true
+				local Handler = OBJECT_HANDLERS[objectFolderName]
+				if Handler then
+					local DisplayName = Handler(Object, ObjectPart)
+					if DisplayName then
+						CreateEspText(Root, DisplayName, ObjectPart.position, objectSettings.Color)
+					end
+				else
+					CreateEspText(
+						Root,
+						objectData.DisplayName or objectFolderName,
+						ObjectPart.position,
+						objectSettings.Color
+					)
+				end
+			end
+			::inner_continue::
 		end
-
-		wait(Clicked and 500 or 10)
+		::continue::
 	end
-
-	Picking = false
 end
 
+-- Initialisation & Interface functions
 local function CreateSettingsInterface()
 	local Menu = gui.create("Criminality General ESP", false)
 	Menu:set_pos(100, 100)
@@ -310,103 +401,16 @@ local function CreateSettingsInterface()
 	end)
 end
 
-local function HandleRenderHook()
-	local Root = Player.character and Player.character:find_first_child("HumanoidRootPart")
-	if not (Root and Root:isvalid() and CONFIGURATION.MAIN_SETTINGS.Enabled) then
-		return
-	end
-	for objectFolderName, objectSettings in pairs(CONFIGURATION.OBJECT_SETTINGS) do
-		if not objectSettings.Enabled then
-			goto continue
-		end
-		local MapObject = Folders[objectFolderName]
-		if not (MapObject and MapObject:isvalid()) then
-			goto continue
-		end
-		local objectData, partName = DATA.OBJECTS[objectFolderName], Parts[objectFolderName]
-		for _, Object in pairs(MapObject:get_children()) do
-			if Object and Object:isvalid() then
-				local IsSinglePart = objectData.SinglePart
-				local ObjectPart = IsSinglePart and Object
-					or Object:find_first_child(partName)
-					or Object:find_first_child_class("BasePart")
-				if not (ObjectPart and ObjectPart:isvalid()) then
-					goto inner_continue
-				end
-				local Distance = GetDistance(ObjectPart.position, Root.position)
-				if Distance > CONFIGURATION.MAIN_SETTINGS.MaxDistance then
-					goto inner_continue
-				end
-
-				if objectFolderName == "BredMakurz" then
-					local Values = Object:find_first_child("Values")
-					if Values and Values:isvalid() then
-						local Broken = Values:find_first_child("Broken")
-						if Broken and Broken:isvalid() and Broken:get_value_bool() then
-							goto inner_continue
-						end
-					end
-					local safeName = Object.name:match("^(%w+)") or Object.name
-					local displayName = ({
-						Register = "Cash Register",
-						SmallSafe = "Small Safe",
-						MediumSafe = "Medium Safe",
-					})[safeName] or safeName
-					CreateEspText(Root, displayName, ObjectPart.position, objectSettings.Color)
-				elseif objectFolderName == "Shopz" then
-					local Type = Object:find_first_child("Type")
-					if Type and Type:isvalid() then
-						local TypeString = Type:get_value_string()
-						local DisplayName = ({
-							IllegalStore = "Illegal Dealer",
-							LegalStore = "Armory Dealer",
-						})[TypeString] or TypeString
-						CreateEspText(Root, DisplayName, ObjectPart.position, objectSettings.Color)
-					end
-				else
-					CreateEspText(
-						Root,
-						objectData.DisplayName or objectFolderName,
-						ObjectPart.position,
-						objectSettings.Color
-					)
-				end
-			end
-			::inner_continue::
-		end
-		::continue::
-	end
-end
-
 local function Initialise()
 	if not LoadSettings() then
 		print("Failed to load settings, using defaults.")
 	end
 	CreateSettingsInterface()
+
 	hook.add("render", "Crim_Gen_ESP", function()
-		local s, e = pcall(HandleRenderHook)
-		if not s then
-			print("Error occurred while rendering ESP:", e)
-		end
-
-		local s, e = pcall(function()
-			if not IsPicking() then
-				return
-			end
-
-			if CONFIGURATION.MAIN_SETTINGS.AUTO_PICK then
-				if not Picking then
-					DoThePicking()
-				end
-			else
-				Picking = false
-			end
-		end)
-
-		if not s then
-			print("Error occurred while handling picking:", e)
-		end
+		SafeCall(HandleRenderHook)
+		SafeCall(LockpickLoop)
 	end)
 end
 
-Initialise()
+SafeCall(Initialise)
