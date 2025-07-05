@@ -84,6 +84,17 @@ local function SafeCall(func, ...)
 	return result
 end
 
+local function CheckElements(Elements)
+	for _, Element in pairs(Elements) do
+		if not Element:isvalid() then
+			LogFunc(Element.name or "FAILED_TO_LOAD_NAME" .. " is invalid or does not exist.")
+			return false
+		end
+	end
+
+	return true
+end
+
 local function GetDistance(pos1, pos2)
 	return floor((pos1 - pos2):length())
 end
