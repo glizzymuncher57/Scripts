@@ -14,20 +14,13 @@ local Folders = {
 	SpawnedBread = Filter and Filter:find_first_child("SpawnedBread"),
 	Shopz = Map and Map:find_first_child("Shopz"),
 }
-local Parts = {
-	ATMs = "MainPart",
-	BredMakurz = "MainPart",
-	SpawnedPiles = "MeshPart",
-	SpawnedBread = "MainPart",
-	Shopz = "MainPart",
-}
 local DATA = {
 	OBJECTS = {
-		SpawnedPiles = { DisplayName = "Spawned Piles", SinglePart = false },
-		SpawnedBread = { DisplayName = "Dropped Cash", SinglePart = true },
-		BredMakurz = { DisplayName = "Safes", SinglePart = false },
-		ATMs = { DisplayName = "ATMs", SinglePart = false },
-		Shopz = { DisplayName = "Dealers", SinglePart = false },
+		SpawnedPiles = { DisplayName = "Spawned Piles", SinglePart = false, Part = "MeshPart" },
+		SpawnedBread = { DisplayName = "Dropped Cash", SinglePart = true, Part = "MainPart" },
+		BredMakurz = { DisplayName = "Safes", SinglePart = false, Part = "MainPart" },
+		ATMs = { DisplayName = "ATMs", SinglePart = false, Part = "MainPart" },
+		Shopz = { DisplayName = "Dealers", SinglePart = false, Part = "MainPart" },
 	},
 }
 local CONFIGURATION = {
@@ -289,12 +282,12 @@ local function HandleRenderHook()
 			goto continue
 		end
 
-		local objectData, partName = DATA.OBJECTS[objectFolderName], Parts[objectFolderName]
+		local objectData = DATA.OBJECTS[objectFolderName]
 		for _, Object in pairs(MapObject:get_children()) do
 			if Object and Object:isvalid() then
 				local IsSinglePart = objectData.SinglePart
 				local ObjectPart = IsSinglePart and Object
-					or Object:find_first_child(partName)
+					or Object:find_first_child(objectData.Part)
 					or Object:find_first_child_class("BasePart")
 				if not (ObjectPart and ObjectPart:isvalid()) then
 					goto inner_continue
