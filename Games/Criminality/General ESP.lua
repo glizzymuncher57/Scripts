@@ -62,6 +62,14 @@ local OBJECT_HANDLERS = {
 		end
 		return "Dealer"
 	end,
+
+		SpawnedPiles = function(Object)
+		return ({
+			["S1"] = "Spawned Pile",
+			["S2"] = "Spawned Pile",
+			["C1"] = "Spawned Crate",
+		})[Object.name] or "Spawned Pile"
+	end,
 }
 
 local Picking = false
