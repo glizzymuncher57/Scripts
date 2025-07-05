@@ -128,28 +128,22 @@ local function Initialise()
 		ui:set_pos(100, 100)
 		ui:set_size(400, 200)
 
-		local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
+		local slider = ui:add_slider("Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
 		slider:change_callback(function()
 			CONFIG.Tolerance = slider:get_value()
 			SaveConfiguration()
 		end)
 
 		-- hello stylua format this one as well please bro
-		local slider2 =
-			ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
+		local slider2 = ui:add_slider("Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
 		slider2:change_callback(function()
 			CONFIG.WaitWhenClicked = floor(slider2:get_value())
 			SaveConfiguration()
 		end)
 
 		-- stylua is such a weird formatter bruh
-		local slider3 = ui:add_slider(
-			"slider3",
-			"Wait When Not Clicked - Doesn't Support Decimals",
-			0,
-			200,
-			CONFIG.WaitWhenNotClicked
-		)
+		local slider3 =
+			ui:add_slider("Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
 		slider3:change_callback(function()
 			CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
 			SaveConfiguration()
