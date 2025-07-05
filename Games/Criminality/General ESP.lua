@@ -184,13 +184,22 @@ local function DoThePicking()
 
 	Picking = true
 
-	-- Declare stuff out of loop
+	local NumberOfBars = 0
+	local CurrentBarNum = 1
+
 	local LockpickGui = PlayerGui:find_first_child("LockpickGUI"):find_first_child("MF"):find_first_child("LP_Frame")
+	if not LockpickGui:isvalid() then
+		Picking = false
+		return
+	end
+
 	local Bars = LockpickGui:find_first_child("Frames")
 	local Line = LockpickGui:find_first_child("Line")
 
-	local NumberOfBars = 0
-	local CurrentBarNum = 1
+	if not CheckElements({ Bars, Line }) then
+		Picking = false
+		return
+	end
 
 	for _, v in pairs(Bars:get_children()) do
 		if v:isvalid() and v.name:find("B") then
