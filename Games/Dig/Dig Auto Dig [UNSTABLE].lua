@@ -161,7 +161,7 @@ local function initCMP()
 	end
 
 	simulate_mouse_click(MOUSE1)
-	wait(300)
+	wait(450)
 
 	if not IsDigging() then
 		initCMP()
