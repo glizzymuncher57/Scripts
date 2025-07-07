@@ -164,6 +164,7 @@ local function initCMP()
 	wait(500)
 
 	if not IsDigging() then
+		LogNoti("Digging UI is not valid or does not exist.")
 		initCMP()
 		return
 	end
