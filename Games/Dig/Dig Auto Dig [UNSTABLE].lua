@@ -226,7 +226,7 @@ local function Initialise()
 
 		local ui = gui.create("Dig Settings", false)
 		ui:set_pos(100, 100)
-		ui:set_size(400, 350)
+		ui:set_size(400, 340)
 
 		local slider = ui:add_slider("Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
 		slider:change_callback(function()
@@ -253,7 +253,7 @@ local function Initialise()
 			SaveConfiguration()
 		end)
 
-		local CMPWAIT = ui:add_slider("CMP Wait Time - WHOLE NUMBERS ONLY.", 0, 1000, 300)
+		local CMPWAIT = ui:add_slider("CMP Wait Time - WHOLE NUMBERS ONLY.", 0, 1000, CONFIG.CMP_WAIT)
 		CMPWAIT:change_callback(function()
 			CONFIG.CMP_WAIT = floor(CMPWAIT:get_value())
 			SaveConfiguration()
