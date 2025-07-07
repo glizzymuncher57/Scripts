@@ -214,6 +214,8 @@ local function StartTheDiggering()
 end
 
 local function Initialise()
+	DIGGING = false
+	AUTO_MODE = false
 	cmP = 1
 	cmPRepeat = 0
 
@@ -277,7 +279,6 @@ local function Initialise()
 		end
 
 		DIGGING = not DIGGING
-
 		if DIGGING then
 			spawn(function()
 				if AUTO_MODE then
