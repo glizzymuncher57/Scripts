@@ -210,7 +210,6 @@ local function StartTheDiggering()
 		wait(Clicked and CONFIG.WaitWhenClicked or CONFIG.WaitWhenNotClicked)
 	end
 
-	log.notification("Digging stopped.", "Info")
 	DIGGING = false
 end
 
@@ -281,13 +280,9 @@ local function Initialise()
 			spawn(function()
 				if AUTO_MODE then
 					while AUTO_MODE do
-						log.notification("Digging in progress...", "Info")
-
 						SafeCall(initCMP, "CMP Main")
-						log.notification("Digging started!", "Info")
 						DIGGING = true
 						StartTheDiggering()
-						log.notification("Waiting for next cycle...", "Info")
 						wait(300)
 					end
 				else
