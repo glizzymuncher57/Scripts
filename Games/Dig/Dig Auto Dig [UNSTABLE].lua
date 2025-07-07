@@ -1,196 +1,303 @@
-local Workspace = game:get_service("Workspace")
-local World = Workspace:find_first_child("World")
-local Map = World and World:find_first_child("Map")
-
 local Player = game:get_service("Players").local_player
 local PlayerGui = Player and Player:find_first_child("PlayerGui")
 
 local DEBUG = true
 local DIGGING = false
-local USE_COROUTINE = true
-local SPECIAL_SPOT_ESP = false
-local SPECIAL_SPOT_PREFIX = "SpecialSpot"
-local SPECIAL_SPOT_COLOUR = color(1, 0, 0, 1)
+local AUTO_MODE = false
+local FILE_NAME = "DigConfig.json"
 
-local abs = math.abs
-local floor = math.floor
-local world_to_screen = world_to_screen
-local in_screen = in_screen
-local render_add_text = render.add_text
+local cmP = 1
+local cmPRepeat = 0
+local activeCmp = false
 
 local CONFIG = {
 	Tolerance = 27, -- Distance tolerance for clicking.
 	WaitWhenClicked = 50, -- Wait time when clicked (miliseconds)
 	WaitWhenNotClicked = 0, -- Wait time when not clicked (miliseconds)
+	REPEAT_CYCLE = 3,
+	CMP_WAIT = 300,
 }
 
+local cmPs = {
+	[1] = function()
+		wait(500)
+		input.simulate_press_down(0x57)
+		wait(CONFIG.CMP_WAIT)
+		input.simulate_press_up(0x57)
+		wait(500)
+
+		return true
+	end,
+	[2] = function()
+		wait(500)
+		input.simulate_press_down(0x44)
+		wait(CONFIG.CMP_WAIT)
+		input.simulate_press_up(0x44)
+		wait(500)
+
+		return true
+	end,
+	[3] = function()
+		wait(500)
+		input.simulate_press_down(0x53)
+		wait(CONFIG.CMP_WAIT)
+		input.simulate_press_up(0x53)
+		wait(500)
+
+		return true
+	end,
+	[4] = function()
+		wait(500)
+		input.simulate_press_down(0x41)
+		wait(CONFIG.CMP_WAIT)
+		input.simulate_press_up(0x41)
+		wait(500)
+
+		return true
+	end,
+}
+
+-- Cached Internals
+local nil_instance = nil_instance
+local abs = math.abs
+local floor = math.floor
+local simulate_mouse_click = input.simulate_mouse_click
+local file = file
+
+-- Util based functions
 local function LogFunc(...)
 	if DEBUG then
-		log.add(..., color(1, 0, 0, 1))
+		log.add("[DIG]: " .. tostring(...), color(1, 0, 0, 1))
 	end
 end
 
-local function GetDistance(pos1, pos2)
-	return floor((pos1 - pos2):length())
+local function SafeCall(func, funcName, ...)
+	local success, result = pcall(func, ...)
+	if not success then
+		LogFunc(("Error in %s: %s"):format(tostring(funcName), tostring(result)))
+		return nil
+	end
+	return result
 end
 
-local function CreateEspText(root, name, world_pos)
-	local dist = GetDistance(root.position, world_pos)
-	if dist <= 5 then
+local function LogNoti(...)
+	log.notification("[DIG]: " .. tostring(...), "Info")
+end
+
+local function CheckElements(Elements)
+	for _, Element in pairs(Elements) do
+		if not Element:isvalid() then
+			LogFunc(Element.name or "FAILED_TO_LOAD_NAME" .. " is invalid or does not exist.")
+			return false
+		end
+	end
+
+	return true
+end
+
+--// Config related functions
+local function SaveConfiguration()
+	local ConfigString = table_to_JSON(CONFIG)
+	if not ConfigString then
+		LogFunc("Failed to convert configuration to JSON string.")
 		return
 	end
-	local screen_pos = world_to_screen(world_pos)
-	if not screen_pos or not in_screen(screen_pos) then
-		return
+
+	if file.exists(FILE_NAME) then
+		file.overwrite(FILE_NAME, ConfigString, "binary")
+	else
+		file.write(FILE_NAME, ConfigString, "binary")
+	end
+end
+
+local function LoadConfiguration()
+	if not file.exists(FILE_NAME) then
+		return false
 	end
 
-	local dist_text = "[" .. dist .. "m]"
+	local ReadResult = SafeCall(file.read, "LoadConfiguration", FILE_NAME, "binary")
+	if not ReadResult then
+		LogFunc("Failed to read configuration file: " .. ReadResult)
+		return false
+	end
 
-	local name_size = render.get_text_size(name)
-	local dist_size = render.get_text_size(dist_text)
+	local ParseResult = SafeCall(JSON_to_table, "LoadConfiguration", ReadResult)
+	if not ParseResult then
+		return false
+	end
 
-	local name_pos = vector2(screen_pos.x - (name_size.x / 2), screen_pos.y)
-	local dist_pos = vector2(screen_pos.x - (dist_size.x / 2), screen_pos.y + name_size.y + 3)
-	local outline_offsets = {
-		vector2(-1, -1),
-		vector2(-1, 1),
-		vector2(1, -1),
-		vector2(1, 1),
+	-- looks fucking awful but it is what it is.
+	CONFIG = {
+		Tolerance = ParseResult.Tolerance or CONFIG.Tolerance,
+		WaitWhenClicked = ParseResult.WaitWhenClicked or CONFIG.WaitWhenClicked,
+		WaitWhenNotClicked = ParseResult.WaitWhenNotClicked or CONFIG.WaitWhenNotClicked,
+		REPEAT_CYCLE = ParseResult.REPEAT_CYCLE or CONFIG.REPEAT_CYCLE,
+		CMP_WAIT = ParseResult.CMP_WAIT or CONFIG.CMP_WAIT,
 	}
 
-	for _, offset in ipairs(outline_offsets) do
-		render_add_text(name_pos + offset, name, color(0, 0, 0, 1))
-	end
-	render_add_text(name_pos, name, SPECIAL_SPOT_COLOUR)
-
-	for _, offset in ipairs(outline_offsets) do
-		render_add_text(dist_pos + offset, dist_text, color(0, 0, 0, 1))
-	end
-	render_add_text(dist_pos, dist_text, color(1, 1, 1, 1))
+	return true
 end
 
-local function ReturnFirstDescendant(Parent, Name)
-	for _, Descendant in pairs(Parent:get_descendants()) do
-		if Descendant.name == Name then
-			return Descendant
+local function IsDigging()
+	return PlayerGui and PlayerGui:find_first_child("Dig") and PlayerGui:find_first_child("Dig"):isvalid()
+end
+
+local function initCMP()
+	if cmPs[cmP] then
+		local cmpmove = cmPs[cmP]()
+		if cmpmove then
+			activeCmp = false
 		end
 	end
 
-	return nil_instance
+	cmPRepeat = cmPRepeat + 1
+	if cmPRepeat >= CONFIG.REPEAT_CYCLE then
+		if cmP < 4 then
+			cmP = cmP + 1
+		else
+			cmP = 1
+		end
+		cmPRepeat = 0
+	end
+
+	simulate_mouse_click(MOUSE1)
+	wait(300)
+
+	if not IsDigging() then
+		initCMP()
+		return
+	end
+
+	return
 end
 
-local function GetColorForSpot(SpotName) end
-
+-- Main Digging Function
 local function StartTheDiggering()
-	-- probably heavily unoptimised to check for the ui every loop but it shouldn't make that much of a diff.
-	while DIGGING do
-		local DigUI = PlayerGui:find_first_child("Dig")
-		if not DigUI:isvalid() then
-			LogFunc("Dig UI became invalid")
-			DIGGING = false
-			return
-		end
-
-		local Area_Strong = ReturnFirstDescendant(DigUI, "Area_Strong")
-		if not Area_Strong:isvalid() then
-			LogFunc("Area_Strong became invalid")
-			DIGGING = false
-			return
-		end
-
-		local PlayerBar = ReturnFirstDescendant(DigUI, "PlayerBar")
-		if not PlayerBar:isvalid() then
-			LogFunc("PlayerBar became invalid")
-			DIGGING = false
-			return
-		end
-
-		local success, err = pcall(function()
-			local PlayerBarPos = PlayerBar.gui_position + (PlayerBar.gui_size / 2)
-			local Area_StrongPos = Area_Strong.gui_position + (Area_Strong.gui_size / 2)
-			local Distance = abs(PlayerBarPos.x - Area_StrongPos.x)
-
-			local Clicked = false
-			if Distance <= CONFIG.Tolerance then
-				input.simulate_mouse_click(MOUSE1)
-				Clicked = true
-			end
-
-			wait(Clicked and CONFIG.WaitWhenClicked or CONFIG.WaitWhenNotClicked)
-		end)
-
-		if not success then
-			LogFunc("Error in dig loop: " .. tostring(err))
-			DIGGING = false
-			return
-		end
+	local DIGUI = PlayerGui:find_first_child("Dig")
+	if not DIGUI:isvalid() then
+		LogFunc("Dig UI is not valid or does not exist.")
+		DIGGING = false
+		return
 	end
+
+	local Area_Strong = DIGUI:find_first_descendant("Area_Strong")
+	local PlayerBar = DIGUI:find_first_descendant("PlayerBar")
+
+	if not CheckElements({ Area_Strong, PlayerBar }) then
+		LogFunc("One or more required UI elements are invalid.")
+		DIGGING = false
+		return
+	end
+
+	while DIGGING and IsDigging() do
+		if not CheckElements({ DIGUI, Area_Strong, PlayerBar }) then
+			LogFunc("One or more required UI elements became invalid.")
+			DIGGING = false
+			return true
+		end
+
+		local PlayerBarPos = PlayerBar.gui_position + (PlayerBar.gui_size / 2)
+		local Area_StrongPos = Area_Strong.gui_position + (Area_Strong.gui_size / 2)
+		local Distance = abs(PlayerBarPos.x - Area_StrongPos.x)
+
+		local Clicked = false
+		if Distance <= CONFIG.Tolerance then
+			simulate_mouse_click(MOUSE1)
+			Clicked = true
+		end
+
+		wait(Clicked and CONFIG.WaitWhenClicked or CONFIG.WaitWhenNotClicked)
+	end
+
+	log.notification("Digging stopped.", "Info")
+	DIGGING = false
 end
 
 local function Initialise()
-	local ui = gui.create("Dig Settings", false)
-	ui:set_pos(100, 100)
-	ui:set_size(400, 200)
+	local function CreateUI()
+		if file.exists(FILE_NAME) then
+			LogNoti(LoadConfiguration() and "Configuration loaded!." or "Failed to load configuration!")
+		end
 
-	local slider = ui:add_slider("slider1", "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
-	slider:change_callback(function()
-		CONFIG.Tolerance = slider:get_value()
-	end)
+		local ui = gui.create("Dig Settings", false)
+		ui:set_pos(100, 100)
+		ui:set_size(400, 350)
 
-	local slider2 =
-		ui:add_slider("slider2", "Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
-	slider2:change_callback(function()
-		CONFIG.WaitWhenClicked = floor(slider2:get_value())
-	end)
-
-	local slider3 =
-		ui:add_slider("slider3", "Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
-	slider3:change_callback(function()
-		CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
-	end)
-
-	local checkbox1 = ui:add_checkbox("checkbox1", "Use Coroutine", USE_COROUTINE)
-	combo1:change_callback(function()
-		USE_COROUTINE = checkbox1:get_value()
-	end)
-
-	local checkbox2 = ui:add_checkbox("checkbox2", "Special Spot ESP", SPECIAL_SPOT_ESP)
-	combo1:change_callback(function()
-		SPECIAL_SPOT_ESP = checkbox2:get_value()
-	end)
-
-	spawn(function()
-		hook.add("render", "DigESP", function()
-			if not SPECIAL_SPOT_ESP then
-				return
-			end
-
-			for _, PotentialSpot in pairs(Map:get_children()) do
-				if PotentialSpot.name:sub(1, #SPECIAL_SPOT_PREFIX) == SPECIAL_SPOT_PREFIX then
-					local Part = PotentialSpot:find_first_child("PositionPart")
-					if Part:isvalid() then
-						CreateEspText(
-							Player.character:find_first_child("HumanoidRootPart"),
-							PotentialSpot.name,
-							Part.position
-						)
-					end
-				end
-			end
+		local slider = ui:add_slider("Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
+		slider:change_callback(function()
+			CONFIG.Tolerance = slider:get_value()
+			SaveConfiguration()
 		end)
 
-		hook.addkey(0x51, "womp", function(KD)
-			DIGGING = KD
+		local slider2 = ui:add_slider("Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
+		slider2:change_callback(function()
+			CONFIG.WaitWhenClicked = floor(slider2:get_value())
+			SaveConfiguration()
+		end)
 
-			if DIGGING then
-				if USE_COROUTINE then
-					coroutine.resume(coroutine.create(StartTheDiggering))
+		local slider3 =
+			ui:add_slider("Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
+		slider3:change_callback(function()
+			CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
+			SaveConfiguration()
+		end)
+
+		local CMPREPEAT = ui:add_slider("CMP Repeat Cycle - WHOLE NUMBERS ONLY.", 1, 10, CONFIG.REPEAT_CYCLE)
+		CMPREPEAT:change_callback(function()
+			CONFIG.REPEAT_CYCLE = floor(CMPREPEAT:get_value())
+			SaveConfiguration()
+		end)
+
+		local CMPWAIT = ui:add_slider("CMP Wait Time - WHOLE NUMBERS ONLY.", 0, 1000, 300)
+		CMPWAIT:change_callback(function()
+			CONFIG.CMP_WAIT = floor(CMPWAIT:get_value())
+			SaveConfiguration()
+		end)
+
+		local automode = ui:add_checkbox("Auto Start Digging", AUTO_MODE)
+		automode:change_callback(function()
+			AUTO_MODE = automode:get_value()
+		end)
+
+		local Close = ui:add_button("Close", function()
+			gui.remove("Dig Settings")
+			hook.removeall()
+
+			DIGGING = false
+			AUTO_MODE = false
+		end)
+	end
+
+	local function InputManager(Keydown)
+		if not Keydown then
+			return
+		end
+
+		DIGGING = not DIGGING
+
+		log.notification(tostring(DIGGING), "Info")
+		if DIGGING then
+			spawn(function()
+				if AUTO_MODE then
+					while AUTO_MODE do
+						log.notification("Digging in progress...", "Info")
+
+						SafeCall(initCMP, "CMP Main")
+						log.notification("Digging started!", "Info")
+						DIGGING = true
+						StartTheDiggering()
+						log.notification("Waiting for next cycle...", "Info")
+						wait(300)
+					end
 				else
 					spawn(StartTheDiggering)
 				end
-			end
-		end)
-	end)
+			end)
+		end
+	end
+
+	hook.addkey(0x51, "MAIN_KEY_LISTENER", InputManager)
+	CreateUI()
 end
 
-Initialise()
+SafeCall(Initialise, "Initialisation")
