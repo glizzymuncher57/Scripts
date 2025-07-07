@@ -214,6 +214,9 @@ local function StartTheDiggering()
 end
 
 local function Initialise()
+	cmP = 1
+	cmPRepeat = 0
+
 	local function CreateUI()
 		if file.exists(FILE_NAME) then
 			LogNoti(LoadConfiguration() and "Configuration loaded!." or "Failed to load configuration!")
@@ -275,7 +278,6 @@ local function Initialise()
 
 		DIGGING = not DIGGING
 
-		log.notification(tostring(DIGGING), "Info")
 		if DIGGING then
 			spawn(function()
 				if AUTO_MODE then
