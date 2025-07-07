@@ -283,9 +283,16 @@ local function Initialise()
 			spawn(function()
 				if AUTO_MODE then
 					while AUTO_MODE do
+						if menu_active() then
+							LogNoti("Menu is active, stopping auto digging.")
+							goto continue
+						end
+
 						SafeCall(initCMP, "CMP Main")
 						DIGGING = true
 						StartTheDiggering()
+
+						::continue::
 						wait(300)
 					end
 				else
