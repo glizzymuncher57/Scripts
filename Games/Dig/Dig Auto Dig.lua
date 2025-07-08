@@ -20,6 +20,8 @@ local CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 
 -- Constants
 local FILE_NAME = "DigConfig.json"
+local WEBHOOK =
+	"https://discord.com/api/webhooks/1391934377725788221/Ap2ipogx3L6fZQR2FtQBgAJm_Vt7deYqiattCDP9zSj82klrYjswvhH3uRGGwX-un_rY" -- yes this is an exposed hook Lol!
 local MOVEMENT_KEYS = { 0x57, 0x44, 0x53, 0x41 } -- W, D, S, A
 local MOVEMENT_PATTERNS = {}
 
@@ -29,8 +31,23 @@ local abs = math.abs
 local floor = math.floor
 local simulate_mouse_click = input.simulate_mouse_click
 local file = file
+local post = http.post
 
 -- Utility Functions
+local function LogWebhook(...)
+	local embed = {
+		content = "[DIG]: " .. tostring(...),
+	}
+
+	post(WEBHOOK, table_to_JSON(embed), function(_, status)
+		if status == 200 then
+			print("Error logged successfully.")
+		else
+			print("Failed to log error. Status code: " .. tostring(status))
+		end
+	end)
+end
+
 local function LogFunc(...)
 	if DEBUG then
 		log.add("[DIG]: " .. tostring(...), color(1, 0, 0, 1))
@@ -44,7 +61,7 @@ end
 local function SafeCall(func, funcName, ...)
 	local success, result = pcall(func, ...)
 	if not success then
-		LogFunc(("Error in %s: %s"):format(tostring(funcName), tostring(result)))
+		LogWebhook(("Error in %s: %s"):format(tostring(funcName), tostring(result)))
 		return nil
 	end
 	return result
@@ -264,7 +281,7 @@ local function HandleInput(Keydown)
 					if not AUTO_MODE then
 						break
 					end
-					
+
 					if menu_active() then
 						LogNoti("Menu is open, currently paused.")
 						break
