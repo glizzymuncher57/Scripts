@@ -9,6 +9,10 @@ local CONFIG = {
 	WaitWhenNotClicked = 0, -- Wait time when not clicked (miliseconds)
 	REPEAT_CYCLE = 3,
 	CMP_WAIT = 300,
+
+	ADVANCED_MOVEMENT_ENABLED = false,
+	MOVEMENT_REPEAT_Z = 3,
+	MOVEMENT_REPEAT_X = 3,
 }
 
 -- State
@@ -120,6 +124,9 @@ local function LoadConfiguration()
 		WaitWhenNotClicked = ParseResult.WaitWhenNotClicked or CONFIG.WaitWhenNotClicked,
 		REPEAT_CYCLE = ParseResult.REPEAT_CYCLE or CONFIG.REPEAT_CYCLE,
 		CMP_WAIT = ParseResult.CMP_WAIT or CONFIG.CMP_WAIT,
+		ADVANCED_MOVEMENT_ENABLED = ParseResult.ADVANCED_MOVEMENT_ENABLED or CONFIG.ADVANCED_MOVEMENT_ENABLED,
+		MOVEMENT_REPEAT_Z = ParseResult.MOVEMENT_REPEAT_Z or CONFIG.MOVEMENT_REPEAT_Z,
+		MOVEMENT_REPEAT_X = ParseResult.MOVEMENT_REPEAT_X or CONFIG.MOVEMENT_REPEAT_X,
 	}
 
 	return true
@@ -132,7 +139,23 @@ local function ExecuteMovementPattern()
 	end
 
 	CURRENT_MOVEMENT_PATTERN_REPEAT = CURRENT_MOVEMENT_PATTERN_REPEAT + 1
-	if CURRENT_MOVEMENT_PATTERN_REPEAT >= CONFIG.REPEAT_CYCLE then
+
+	local REPEATS = CONFIG.REPEAT_CYCLE
+
+	if CONFIG.ADVANCED_MOVEMENT_ENABLED then
+		if CURRENT_MOVEMENT_PATTERN == 1 or CURRENT_MOVEMENT_PATTERN == 3 then
+			REPEATS = CONFIG.MOVEMENT_REPEAT_Z
+		elseif CURRENT_MOVEMENT_PATTERN == 2 or CURRENT_MOVEMENT_PATTERN == 4 then
+			REPEATS = CONFIG.MOVEMENT_REPEAT_X
+		end
+	end
+
+	if CURRENT_MOVEMENT_PATTERN_REPEAT == REPEATS then
+		CURRENT_MOVEMENT_PATTERN = CURRENT_MOVEMENT_PATTERN % #MOVEMENT_KEYS + 1
+		CURRENT_MOVEMENT_PATTERN_REPEAT = 0
+	end
+	--[[
+ 	if CURRENT_MOVEMENT_PATTERN_REPEAT >= REPEATS then
 		if CURRENT_MOVEMENT_PATTERN < #MOVEMENT_KEYS then
 			CURRENT_MOVEMENT_PATTERN = CURRENT_MOVEMENT_PATTERN + 1
 		else
@@ -140,6 +163,8 @@ local function ExecuteMovementPattern()
 		end
 		CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 	end
+	]]
+	--
 
 	simulate_mouse_click(MOUSE1)
 	wait(500)
@@ -212,7 +237,7 @@ local function StartDigging()
 end
 
 -- Interface and Input functions
-local function CreateSettingsUI()
+local function CreateSettingsUI(RestoreGlobals)
 	if file.exists(FILE_NAME) then
 		LogNoti(LoadConfiguration() and "Configuration loaded!." or "Failed to load configuration!")
 	end
@@ -258,10 +283,35 @@ local function CreateSettingsUI()
 
 	local Close = ui:add_button("Close", function()
 		gui.remove("Dig Settings")
+		gui.remove("Movement Settings")
 		hook.removeall()
 
 		DIGGING = false
 		AUTO_MODE = false
+	end)
+
+	local Movement_Settings = gui.create("Movement Settings", false)
+	Movement_Settings:set_pos(100, 400)
+	Movement_Settings:set_size(400, 200)
+
+	local AdvancedMovement =
+		Movement_Settings:add_checkbox("Enable Advanced Movement", CONFIG.ADVANCED_MOVEMENT_ENABLED)
+	AdvancedMovement:change_callback(function()
+		CONFIG.ADVANCED_MOVEMENT_ENABLED = AdvancedMovement:get_value()
+		SaveConfiguration()
+	end)
+
+	local MovementRepeatZ =
+		Movement_Settings:add_slider("Movement Repeat FORWARD/BACKWARD", 1, 10, CONFIG.MOVEMENT_REPEAT_Z)
+	MovementRepeatZ:change_callback(function()
+		CONFIG.MOVEMENT_REPEAT_Z = floor(MovementRepeatZ:get_value())
+		SaveConfiguration()
+	end)
+
+	local MovementRepeatX = Movement_Settings:add_slider("Movement Repeat LEFT/RIGHT", 1, 10, CONFIG.MOVEMENT_REPEAT_X)
+	MovementRepeatX:change_callback(function()
+		CONFIG.MOVEMENT_REPEAT_X = floor(MovementRepeatX:get_value())
+		SaveConfiguration()
 	end)
 end
 
