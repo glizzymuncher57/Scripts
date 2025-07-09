@@ -352,18 +352,18 @@ local function CreateSettingsUI()
 
 	UIManager.AddButton(UI, "Dig Settings", function()
 		UI_OPEN.DigSettings = UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
-	end)
+	end, 97)
 
 	UIManager.AddButton(UI, "Movement Settings", function()
 		UI_OPEN.MovementSettings = UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
-	end)
+	end, 88)
 
 	UIManager.AddButton(UI, "Close", function()
 		UIManager.CloseWindow("Digging Manager")
 		UIManager.CloseWindow("Dig Settings")
 		UIManager.CloseWindow("Movement Settings")
 		hook.removekey(0x51, "MAIN_KEY_LISTENER")
-	end)
+	end, 104)
 end
 
 local function HandleInput(Keydown)
