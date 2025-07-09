@@ -168,22 +168,19 @@ local function ReturnSellInventoryPosition()
 end
 
 local function SellInventory()
-	if not PlayerGui:find_first_child("Backpack") then
-		LogFunc("Inventory UI not open or invalid.")
-		return false
-	end
-
-	input.simulate_press(0x47)
-	wait(300)
+	wait(2000)
+	input.simulate_press_down(0x47)
+	input.simulate_press_up(0x47)
 	local SellPosition = ReturnSellInventoryPosition()
-	input.set_mouse_position(vector2(SellPosition.x, SellPosition.y))
-	wait(300)
-	simulate_mouse_click(MOUSE1)
-	wait(300)
-
-	input.simulate_press(0x47)
-	LAST_SELL_TIME = get_unixtime()
-	wait(300)
+	input.set_mouse_position(vector2(0, 6) + vector2(SellPosition.x, SellPosition.y))
+	wait(1000)
+	input.simulate_mouse_up(MOUSE1)
+	input.simulate_mouse_down(MOUSE1)
+	LogNoti("Clicked Sell Button")
+	wait(1000)
+	input.simulate_press_down(0x47)
+	input.simulate_press_up(0x47)
+	wait(500)
 end
 
 -- Movement Functions
@@ -422,8 +419,7 @@ local function HandleInput(Keydown)
 					SafeCall(ExecuteMovementPattern, "Movement Manager")
 					SafeCall(StartDigging, "Digging Manager")
 
-					if (get_unixtime() - LAST_SELL_TIME) >= 15 then
-						wait(500)
+					if (get_unixtime() - LAST_SELL_TIME) >= 7 then
 						SellInventory()
 						LAST_SELL_TIME = get_unixtime()
 					end
