@@ -14,6 +14,9 @@ local CONFIG = {
 	ADVANCED_MOVEMENT_ENABLED = false,
 	MOVEMENT_REPEAT_Z = 3,
 	MOVEMENT_REPEAT_X = 3,
+
+	AUTO_SELL_ENABLED = false,
+	AUTO_SELL_TIME = 7,
 }
 
 -- State
@@ -351,7 +354,7 @@ function UIManager.AddCheckbox(UI, Label, Value, ConfigKey)
 end
 
 local function CreateDigSettingsUI()
-	local UI = UIManager.CreateWindow("Dig Settings", 400, 380)
+	local UI = UIManager.CreateWindow("Dig Settings", 400, 410)
 	UIManager.AddSlider(UI, "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance, false, "Tolerance")
 	UIManager.AddSlider(UI, "Wait When Clicked", 0, 200, CONFIG.WaitWhenClicked, true, "WaitWhenClicked")
 	UIManager.AddSlider(UI, "Wait When Not Clicked", 0, 200, CONFIG.WaitWhenNotClicked, true, "WaitWhenNotClicked")
@@ -376,8 +379,15 @@ local function CreateMovementSettingsUI()
 	UIManager.AddSlider(UI, "Movement Repeat LEFT/RIGHT", 1, 10, CONFIG.MOVEMENT_REPEAT_X, true, "MOVEMENT_REPEAT_X")
 end
 
+local function CreateAutoSellSettingsUI()
+	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 200, 850, 100)
+	UI:add_label("NOTE: AUTO SELL ONLY WORKS IF YOU HAVE THE GAMEPASS!")
+	UIManager.AddCheckbox(UI, "Enable Auto Sell - Auto Dig Extension", CONFIG.AUTO_SELL_ENABLED, "AUTO_SELL_ENABLED")
+	UIManager.AddSlider(UI, "Auto Sell Time (Seconds)", 1, 9999, CONFIG.AUTO_SELL_TIME, true, "AUTO_SELL_TIME")
+end
+
 local function CreateSettingsUI()
-	local UI = UIManager.CreateWindow("Digging Manager", 400, 200, 475, 280)
+	local UI = UIManager.CreateWindow("Digging Manager", 400, 250, 475, 280)
 
 	UIManager.AddButton(UI, "Dig Settings", function()
 		UI_OPEN.DigSettings = UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
@@ -386,6 +396,10 @@ local function CreateSettingsUI()
 	UIManager.AddButton(UI, "Movement Settings", function()
 		UI_OPEN.MovementSettings = UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
 	end, 88)
+
+	UIManager.AddButton(UI, "Auto Sell Settings", function()
+		UIManager.ToggleWindow("Auto Sell Settings", CreateAutoSellSettingsUI)
+	end, 92)
 
 	UIManager.AddButton(UI, "Close", function()
 		UIManager.CloseWindow("Digging Manager")
@@ -418,9 +432,11 @@ local function HandleInput(Keydown)
 					SafeCall(ExecuteMovementPattern, "Movement Manager")
 					SafeCall(StartDigging, "Digging Manager")
 
-					if (get_unixtime() - LAST_SELL_TIME) >= 7 then
-						SellInventory()
-						LAST_SELL_TIME = get_unixtime()
+					if CONFIG.AUTO_SELL_ENABLED then
+						if (get_unixtime() - LAST_SELL_TIME) >= CONFIG.AUTO_SELL_TIME then
+							SellInventory()
+							LAST_SELL_TIME = get_unixtime()
+						end
 					end
 					wait(300)
 				end
