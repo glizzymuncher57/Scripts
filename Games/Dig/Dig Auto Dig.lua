@@ -247,7 +247,9 @@ local function StartDigging()
 end
 
 -- Interface and Input functions
+
 -- UI "Library"
+-- UI Manager Implementation
 local UIManager = {
 	ActiveWindows = {},
 	DefaultPadding = 15,
@@ -324,8 +326,8 @@ local function CreateDigSettingsUI()
 	UIManager.AddSlider(UI, "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance, false, "Tolerance")
 	UIManager.AddSlider(UI, "Wait When Clicked", 0, 200, CONFIG.WaitWhenClicked, true, "WaitWhenClicked")
 	UIManager.AddSlider(UI, "Wait When Not Clicked", 0, 200, CONFIG.WaitWhenNotClicked, true, "WaitWhenNotClicked")
-	UIManager.AddSlider(UI, "CMP Repeat Cycle", 1, 10, CONFIG.REPEAT_CYCLE, true, "REPEAT_CYCLE")
-	UIManager.AddSlider(UI, "CMP Wait Time", 0, 1000, CONFIG.CMP_WAIT, true, "CMP_WAIT")
+	UIManager.AddSlider(UI, "Repeat Movement Cycle", 1, 10, CONFIG.REPEAT_CYCLE, true, "REPEAT_CYCLE")
+	UIManager.AddSlider(UI, "Movement Cycle Keypress Time", 0, 1000, CONFIG.CMP_WAIT, true, "CMP_WAIT")
 	UIManager.AddSlider(UI, "Wait Between Dig", 300, 1000, CONFIG.WAIT_BETWEEN_DIG, true, "WAIT_BETWEEN_DIG")
 	UIManager.AddCheckbox(UI, "Auto Start Digging", AUTO_MODE, "AUTO_MODE")
 end
