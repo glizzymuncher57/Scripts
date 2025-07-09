@@ -98,6 +98,7 @@ local function CanDig()
 	return Player.character
 		and Player.character:find_first_child_class("Tool")
 		and Player.character:find_first_child_class("Tool").name:lower():find("shovel")
+		or Player.character:find_first_child_class("Tool").name == "Beast Slayer"
 end
 
 local function IsDigging()
