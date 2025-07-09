@@ -162,8 +162,8 @@ local function ReturnSellInventoryPosition()
 	local SellButtonCenter = SellButton.gui_position + (SellButton.gui_size / 2)
 
 	return {
-		x = math.floor(SellButtonCenter.x),
-		y = math.floor(SellButtonCenter.y),
+		x = SellButtonCenter.x,
+		y = SellButtonCenter.y,
 	}
 end
 
@@ -174,8 +174,7 @@ local function SellInventory()
 	local SellPosition = ReturnSellInventoryPosition()
 	input.set_mouse_position(vector2(0, 6) + vector2(SellPosition.x, SellPosition.y))
 	wait(1000)
-	input.simulate_mouse_up(MOUSE1)
-	input.simulate_mouse_down(MOUSE1)
+	simulate_mouse_click(MOUSE1)
 	LogNoti("Clicked Sell Button")
 	wait(1000)
 	input.simulate_press_down(0x47)
