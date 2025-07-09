@@ -10,7 +10,7 @@ local CONFIG = {
 	REPEAT_CYCLE = 3,
 	CMP_WAIT = 300,
 	WAIT_BETWEEN_DIG = 500, -- Wait time between the mouse clicking and the script checking if the ui is valid (miliseconds)
-
+	AUTO_MODE = false,
 	ADVANCED_MOVEMENT_ENABLED = false,
 	MOVEMENT_REPEAT_Z = 3,
 	MOVEMENT_REPEAT_X = 3,
@@ -19,7 +19,6 @@ local CONFIG = {
 -- State
 local DEBUG = true
 local DIGGING = false
-local AUTO_MODE = false
 local CURRENT_MOVEMENT_PATTERN = 1
 local CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 local UI_OPEN = {
@@ -89,7 +88,6 @@ end
 
 local function RestoreGlobals()
 	DIGGING = false
-	AUTO_MODE = false
 	CURRENT_MOVEMENT_PATTERN = 1
 	CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 	UI_OPEN.MovementSettings = false
@@ -137,18 +135,9 @@ local function LoadConfiguration()
 		return false
 	end
 
-	-- looks fucking awful but it is what it is.
-	CONFIG = {
-		Tolerance = ParseResult.Tolerance or CONFIG.Tolerance,
-		WaitWhenClicked = ParseResult.WaitWhenClicked or CONFIG.WaitWhenClicked,
-		WaitWhenNotClicked = ParseResult.WaitWhenNotClicked or CONFIG.WaitWhenNotClicked,
-		REPEAT_CYCLE = ParseResult.REPEAT_CYCLE or CONFIG.REPEAT_CYCLE,
-		CMP_WAIT = ParseResult.CMP_WAIT or CONFIG.CMP_WAIT,
-		ADVANCED_MOVEMENT_ENABLED = ParseResult.ADVANCED_MOVEMENT_ENABLED or CONFIG.ADVANCED_MOVEMENT_ENABLED,
-		MOVEMENT_REPEAT_Z = ParseResult.MOVEMENT_REPEAT_Z or CONFIG.MOVEMENT_REPEAT_Z,
-		MOVEMENT_REPEAT_X = ParseResult.MOVEMENT_REPEAT_X or CONFIG.MOVEMENT_REPEAT_X,
-		WAIT_BETWEEN_DIG = ParseResult.WAIT_BETWEEN_DIG or CONFIG.WAIT_BETWEEN_DIG,
-	}
+	for Setting, Value in pairs(CONFIG) do
+		CONFIG[Setting] = ParseResult[Setting] or Value
+	end
 
 	return true
 end
@@ -329,7 +318,7 @@ local function CreateDigSettingsUI()
 	UIManager.AddSlider(UI, "Repeat Movement Cycle", 1, 10, CONFIG.REPEAT_CYCLE, true, "REPEAT_CYCLE")
 	UIManager.AddSlider(UI, "Movement Cycle Keypress Time", 0, 1000, CONFIG.CMP_WAIT, true, "CMP_WAIT")
 	UIManager.AddSlider(UI, "Wait Between Dig", 300, 1000, CONFIG.WAIT_BETWEEN_DIG, true, "WAIT_BETWEEN_DIG")
-	UIManager.AddCheckbox(UI, "Auto Start Digging", AUTO_MODE, "AUTO_MODE")
+	UIManager.AddCheckbox(UI, "Auto Start Digging", CONFIG.AUTO_MODE, "AUTO_MODE")
 end
 
 local function CreateMovementSettingsUI()
@@ -379,11 +368,11 @@ local function HandleInput(Keydown)
 	DIGGING = not DIGGING
 	if DIGGING then
 		spawn(function()
-			if AUTO_MODE then
+			if CONFIG.AUTO_MODE then
 				CURRENT_MOVEMENT_PATTERN = 1
 				CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 
-				while AUTO_MODE and CanDig() and not menu_active() do
+				while CONFIG.AUTO_MODE and CanDig() and not menu_active() do
 					DIGGING = true
 					SafeCall(ExecuteMovementPattern, "Movement Manager")
 					SafeCall(StartDigging, "Digging Manager")
