@@ -256,6 +256,8 @@ local function StartDigging()
 	DIGGING = false
 end
 
+-- Interface and Input functions
+
 local function CreateDigSettingsUI()
 	local ui = gui.create("Dig Settings", false)
 	ui:set_pos(100, 100)
@@ -329,9 +331,8 @@ local function CreateMovementSettingsUI()
 	end)
 end
 
--- Interface and Input functions
 local function CreateSettingsUI()
-	local MainUI = gui.create("Digging Manager", true)
+	local MainUI = gui.create("Digging Manager", false)
 	MainUI:set_pos(475, 280)
 	MainUI:set_size(400, 200)
 
