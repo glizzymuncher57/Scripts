@@ -330,7 +330,7 @@ local function CreateMovementSettingsUI()
 end
 
 -- Interface and Input functions
-local function CreateSettingsUI(RestoreGlobals)
+local function CreateSettingsUI()
 	local MainUI = gui.create("Digging Manager", true)
 	MainUI:set_pos(475, 280)
 	MainUI:set_size(400, 200)
@@ -354,7 +354,6 @@ local function CreateSettingsUI(RestoreGlobals)
 	end)
 
 	local Close = MainUI:add_button(CreatePaddedText("Close", 104), function()
-		RestoreGlobals()
 		gui.remove("Digging Manager")
 		gui.remove("Dig Settings")
 		gui.remove("Movement Settings")
@@ -398,7 +397,7 @@ local function Initialise()
 	RestoreGlobals()
 	InitialiseMovementPatterns()
 	hook.addkey(0x51, "MAIN_KEY_LISTENER", HandleInput)
-	CreateSettingsUI(RestoreGlobals)
+	CreateSettingsUI()
 end
 
 SafeCall(Initialise, "Initialisation")
