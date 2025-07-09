@@ -9,6 +9,7 @@ local CONFIG = {
 	WaitWhenNotClicked = 0, -- Wait time when not clicked (miliseconds)
 	REPEAT_CYCLE = 3,
 	CMP_WAIT = 300,
+	WAIT_BETWEEN_DIG = 500, -- Wait time between the mouse clicking and the script checking if the ui is valid (miliseconds)
 
 	ADVANCED_MOVEMENT_ENABLED = false,
 	MOVEMENT_REPEAT_Z = 3,
@@ -82,6 +83,12 @@ local function CheckElements(Elements)
 	return true
 end
 
+local function CanDig()
+	return Player.character
+		and Player.character:find_first_child_class("Tool")
+		and Player.character:find_first_child_class("Tool").name:lower():find("shovel")
+end
+
 local function IsDigging()
 	return PlayerGui and PlayerGui:find_first_child("Dig") and PlayerGui:find_first_child("Dig"):isvalid()
 end
@@ -127,6 +134,7 @@ local function LoadConfiguration()
 		ADVANCED_MOVEMENT_ENABLED = ParseResult.ADVANCED_MOVEMENT_ENABLED or CONFIG.ADVANCED_MOVEMENT_ENABLED,
 		MOVEMENT_REPEAT_Z = ParseResult.MOVEMENT_REPEAT_Z or CONFIG.MOVEMENT_REPEAT_Z,
 		MOVEMENT_REPEAT_X = ParseResult.MOVEMENT_REPEAT_X or CONFIG.MOVEMENT_REPEAT_X,
+		WAIT_BETWEEN_DIG = ParseResult.WAIT_BETWEEN_DIG or CONFIG.WAIT_BETWEEN_DIG,
 	}
 
 	return true
@@ -154,20 +162,9 @@ local function ExecuteMovementPattern()
 		CURRENT_MOVEMENT_PATTERN = CURRENT_MOVEMENT_PATTERN % #MOVEMENT_KEYS + 1
 		CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 	end
-	--[[
- 	if CURRENT_MOVEMENT_PATTERN_REPEAT >= REPEATS then
-		if CURRENT_MOVEMENT_PATTERN < #MOVEMENT_KEYS then
-			CURRENT_MOVEMENT_PATTERN = CURRENT_MOVEMENT_PATTERN + 1
-		else
-			CURRENT_MOVEMENT_PATTERN = 1
-		end
-		CURRENT_MOVEMENT_PATTERN_REPEAT = 0
-	end
-	]]
-	--
 
 	simulate_mouse_click(MOUSE1)
-	wait(500)
+	wait(CONFIG.WAIT_BETWEEN_DIG)
 
 	if not IsDigging() then
 		LogNoti("Digging UI is not valid or does not exist.")
@@ -276,6 +273,12 @@ local function CreateSettingsUI(RestoreGlobals)
 		SaveConfiguration()
 	end)
 
+	local WaitBetweenDig = ui:add_slider("Wait Between Dig - WHOLE NUMBERS ONLY.", 300, 1000, CONFIG.WAIT_BETWEEN_DIG)
+	WaitBetweenDig:change_callback(function()
+		CONFIG.WAIT_BETWEEN_DIG = floor(WaitBetweenDig:get_value())
+		SaveConfiguration()
+	end)
+
 	local automode = ui:add_checkbox("Auto Start Digging", AUTO_MODE)
 	automode:change_callback(function()
 		AUTO_MODE = automode:get_value()
@@ -320,6 +323,11 @@ local function HandleInput(Keydown)
 		return
 	end
 
+	if not CanDig() then
+		LogNoti("You need a shovel to dig!")
+		return
+	end
+
 	DIGGING = not DIGGING
 	if DIGGING then
 		spawn(function()
@@ -327,18 +335,9 @@ local function HandleInput(Keydown)
 				CURRENT_MOVEMENT_PATTERN = 1
 				CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 
-				while AUTO_MODE do
-					if not AUTO_MODE then
-						break
-					end
-
-					if menu_active() then
-						LogNoti("Menu is open, currently paused.")
-						break
-					end
-
-					SafeCall(ExecuteMovementPattern, "Movement Manager")
+				while AUTO_MODE and CanDig() and not menu_active() do
 					DIGGING = true
+					SafeCall(ExecuteMovementPattern, "Movement Manager")
 					SafeCall(StartDigging, "Digging Manager")
 					wait(300)
 				end
