@@ -22,6 +22,10 @@ local DIGGING = false
 local AUTO_MODE = false
 local CURRENT_MOVEMENT_PATTERN = 1
 local CURRENT_MOVEMENT_PATTERN_REPEAT = 0
+local UI_OPEN = {
+	MovementSettings = false,
+	DigSettings = false,
+}
 
 -- Constants
 local FILE_NAME = "DigConfig.json"
@@ -81,6 +85,25 @@ local function CheckElements(Elements)
 	end
 
 	return true
+end
+
+local function RestoreGlobals()
+	DIGGING = false
+	AUTO_MODE = false
+	CURRENT_MOVEMENT_PATTERN = 1
+	CURRENT_MOVEMENT_PATTERN_REPEAT = 0
+	UI_OPEN.MovementSettings = false
+	UI_OPEN.DigSettings = false
+end
+
+local function CreatePaddedText(text, desired_width)
+	local text_length = string.len(text)
+	local total_padding = math.max(0, desired_width - text_length)
+	local left_padding = math.floor(total_padding / 2)
+	local right_padding = total_padding - left_padding
+
+	-- Create the padded string
+	return string.rep(" ", left_padding) .. text .. string.rep(" ", right_padding)
 end
 
 local function CanDig()
@@ -233,15 +256,10 @@ local function StartDigging()
 	DIGGING = false
 end
 
--- Interface and Input functions
-local function CreateSettingsUI(RestoreGlobals)
-	if file.exists(FILE_NAME) then
-		LogNoti(LoadConfiguration() and "Configuration loaded!." or "Failed to load configuration!")
-	end
-
+local function CreateDigSettingsUI()
 	local ui = gui.create("Dig Settings", false)
 	ui:set_pos(100, 100)
-	ui:set_size(400, 340)
+	ui:set_size(400, 380)
 
 	local slider = ui:add_slider("Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
 	slider:change_callback(function()
@@ -283,18 +301,11 @@ local function CreateSettingsUI(RestoreGlobals)
 	automode:change_callback(function()
 		AUTO_MODE = automode:get_value()
 	end)
+end
 
-	local Close = ui:add_button("Close", function()
-		gui.remove("Dig Settings")
-		gui.remove("Movement Settings")
-		hook.removeall()
-
-		DIGGING = false
-		AUTO_MODE = false
-	end)
-
+local function CreateMovementSettingsUI()
 	local Movement_Settings = gui.create("Movement Settings", false)
-	Movement_Settings:set_pos(100, 400)
+	Movement_Settings:set_pos(475, 100)
 	Movement_Settings:set_size(400, 200)
 
 	local AdvancedMovement =
@@ -315,6 +326,39 @@ local function CreateSettingsUI(RestoreGlobals)
 	MovementRepeatX:change_callback(function()
 		CONFIG.MOVEMENT_REPEAT_X = floor(MovementRepeatX:get_value())
 		SaveConfiguration()
+	end)
+end
+
+-- Interface and Input functions
+local function CreateSettingsUI(RestoreGlobals)
+	local MainUI = gui.create("Digging Manager", true)
+	MainUI:set_pos(475, 280)
+	MainUI:set_size(400, 200)
+
+	local DigSettings = MainUI:add_button(CreatePaddedText("Dig Settings", 97), function()
+		UI_OPEN.DigSettings = not UI_OPEN.DigSettings
+		if UI_OPEN.DigSettings then
+			CreateDigSettingsUI()
+		else
+			gui.remove("Dig Settings")
+		end
+	end)
+
+	local MovementSettings = MainUI:add_button(CreatePaddedText("Movement Settings", 88), function()
+		UI_OPEN.MovementSettings = not UI_OPEN.MovementSettings
+		if UI_OPEN.MovementSettings then
+			CreateMovementSettingsUI()
+		else
+			gui.remove("Movement Settings")
+		end
+	end)
+
+	local Close = MainUI:add_button(CreatePaddedText("Close", 104), function()
+		RestoreGlobals()
+		gui.remove("Digging Manager")
+		gui.remove("Dig Settings")
+		gui.remove("Movement Settings")
+		hook.removekey(0x51, "MAIN_KEY_LISTENER")
 	end)
 end
 
@@ -350,17 +394,11 @@ end
 
 -- Initialisation
 local function Initialise()
-	local function RestoreGlobals()
-		DIGGING = false
-		AUTO_MODE = false
-		CURRENT_MOVEMENT_PATTERN = 1
-		CURRENT_MOVEMENT_PATTERN_REPEAT = 0
-	end
-
+	LoadConfiguration()
 	RestoreGlobals()
 	InitialiseMovementPatterns()
 	hook.addkey(0x51, "MAIN_KEY_LISTENER", HandleInput)
-	CreateSettingsUI()
+	CreateSettingsUI(RestoreGlobals)
 end
 
 SafeCall(Initialise, "Initialisation")
