@@ -247,9 +247,7 @@ local function StartDigging()
 end
 
 -- Interface and Input functions
-
 -- UI "Library"
--- UI Manager Implementation
 local UIManager = {
 	ActiveWindows = {},
 	DefaultPadding = 15,
@@ -333,10 +331,18 @@ local function CreateDigSettingsUI()
 end
 
 local function CreateMovementSettingsUI()
-    local UI = UIManager.CreateWindow("Movement Settings", 400, 200, 475, 100)
-    UIManager.AddCheckbox(UI, "Enable Advanced Movement", CONFIG.ADVANCED_MOVEMENT_ENABLED, "ADVANCED_MOVEMENT_ENABLED")
-    UIManager.AddSlider(UI, "Movement Repeat FORWARD/BACKWARD", 1, 10, CONFIG.MOVEMENT_REPEAT_Z, true, "MOVEMENT_REPEAT_Z")
-    UIManager.AddSlider(UI, "Movement Repeat LEFT/RIGHT", 1, 10, CONFIG.MOVEMENT_REPEAT_X, true, "MOVEMENT_REPEAT_X")
+	local UI = UIManager.CreateWindow("Movement Settings", 400, 200, 475, 100)
+	UIManager.AddCheckbox(UI, "Enable Advanced Movement", CONFIG.ADVANCED_MOVEMENT_ENABLED, "ADVANCED_MOVEMENT_ENABLED")
+	UIManager.AddSlider(
+		UI,
+		"Movement Repeat FORWARD/BACKWARD",
+		1,
+		10,
+		CONFIG.MOVEMENT_REPEAT_Z,
+		true,
+		"MOVEMENT_REPEAT_Z"
+	)
+	UIManager.AddSlider(UI, "Movement Repeat LEFT/RIGHT", 1, 10, CONFIG.MOVEMENT_REPEAT_X, true, "MOVEMENT_REPEAT_X")
 end
 
 local function CreateSettingsUI()
@@ -344,18 +350,18 @@ local function CreateSettingsUI()
 
 	UIManager.AddButton(UI, "Dig Settings", function()
 		UI_OPEN.DigSettings = UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
-	end, 97)
+	end)
 
 	UIManager.AddButton(UI, "Movement Settings", function()
 		UI_OPEN.MovementSettings = UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
-	end, 88)
+	end)
 
 	UIManager.AddButton(UI, "Close", function()
 		UIManager.CloseWindow("Digging Manager")
 		UIManager.CloseWindow("Dig Settings")
 		UIManager.CloseWindow("Movement Settings")
 		hook.removekey(0x51, "MAIN_KEY_LISTENER")
-	end, 104)
+	end)
 end
 
 local function HandleInput(Keydown)
