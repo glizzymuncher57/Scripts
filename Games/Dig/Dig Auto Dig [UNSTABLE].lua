@@ -91,6 +91,7 @@ local function RestoreGlobals()
 	DIGGING = false
 	CURRENT_MOVEMENT_PATTERN = 1
 	CURRENT_MOVEMENT_PATTERN_REPEAT = 0
+	LAST_SELL_TIME = 0
 	UI_OPEN.MovementSettings = false
 	UI_OPEN.DigSettings = false
 end
@@ -167,13 +168,22 @@ local function ReturnSellInventoryPosition()
 end
 
 local function SellInventory()
-	input.simulate_press(0x47) -- open
+	if not PlayerGui:find_first_child("Backpack") then
+		LogFunc("Inventory UI not open or invalid.")
+		return false
+	end
+
+	input.simulate_press(0x47)
+	wait(300)
 	local SellPosition = ReturnSellInventoryPosition()
 	input.set_mouse_position(vector2(SellPosition.x, SellPosition.y))
 	wait(300)
-	simulate_mouse_click(MOUSE1) -- click sell
-	input.simulate_press(0x47) -- close
-	LAST_SELL_TIME = Now
+	simulate_mouse_click(MOUSE1)
+	wait(300)
+
+	input.simulate_press(0x47)
+	LAST_SELL_TIME = get_unixtime()
+	wait(300)
 end
 
 -- Movement Functions
@@ -405,16 +415,18 @@ local function HandleInput(Keydown)
 			if CONFIG.AUTO_MODE then
 				CURRENT_MOVEMENT_PATTERN = 1
 				CURRENT_MOVEMENT_PATTERN_REPEAT = 0
+				LAST_SELL_TIME = 0
 
 				while CONFIG.AUTO_MODE and CanDig() and not menu_active() do
-					local Now = get_unixtime()
-					if (Now - LAST_SELL_TIME) >= 15 then
-						SafeCall(SellInventory, "Sell Inventory")
-					end
-
 					DIGGING = true
 					SafeCall(ExecuteMovementPattern, "Movement Manager")
 					SafeCall(StartDigging, "Digging Manager")
+
+					if (get_unixtime() - LAST_SELL_TIME) >= 15 then
+						wait(500)
+						SellInventory()
+						LAST_SELL_TIME = get_unixtime()
+					end
 					wait(300)
 				end
 			else
