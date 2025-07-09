@@ -16,7 +16,7 @@ local CONFIG = {
 	MOVEMENT_REPEAT_X = 3,
 
 	AUTO_SELL_ENABLED = false,
-	AUTO_SELL_TIME = 7,
+	AUTO_SELL_TIME = 300,
 }
 
 -- State
@@ -162,26 +162,28 @@ local function ReturnSellInventoryPosition()
 		return nil_instance
 	end
 
-	local SellButtonCenter = SellButton.gui_position + (SellButton.gui_size / 2)
+	local SellButtonPos = SellButton.gui_position
+	local SellButtonSize = SellButton.gui_size
 
-	return {
-		x = SellButtonCenter.x,
-		y = SellButtonCenter.y,
-	}
+	return SellButtonPos + (SellButtonSize / 2)
 end
 
 local function SellInventory()
+	local OriginalMousePos = input.get_mouse_position()
 	wait(2000)
-	input.simulate_press_down(0x47)
-	input.simulate_press_up(0x47)
+	input.simulate_press(0x47)
 	local SellPosition = ReturnSellInventoryPosition()
-	input.set_mouse_position(vector2(0, 4) + vector2(SellPosition.x, SellPosition.y))
+	repeat
+		local CurrentMousePos = input.get_mouse_position()
+		local NewPos = CurrentMousePos:lerp(SellPosition, 0.25)
+		input.set_mouse_position(NewPos)
+		wait(25)
+	until abs(CurrentMousePos.x - SellPosition.x) < 17.5 and abs(CurrentMousePos.y - SellPosition.y) < 17.5
 	wait(1000)
 	simulate_mouse_click(MOUSE1)
-	LogNoti("Clicked Sell Button")
 	wait(1000)
-	input.simulate_press_down(0x47)
-	input.simulate_press_up(0x47)
+	input.set_mouse_position(OriginalMousePos)
+	input.simulate_press(0x47)
 	wait(500)
 end
 
@@ -279,9 +281,7 @@ local function StartDigging()
 end
 
 -- Interface and Input functions
-
 -- UI "Library"
--- UI Manager Implementation
 local UIManager = {
 	ActiveWindows = {},
 	DefaultPadding = 15,
@@ -434,7 +434,7 @@ local function HandleInput(Keydown)
 
 					if CONFIG.AUTO_SELL_ENABLED then
 						if (get_unixtime() - LAST_SELL_TIME) >= CONFIG.AUTO_SELL_TIME then
-							SellInventory()
+							SafeCall(SellInventory, "Auto Sell Manager")
 							LAST_SELL_TIME = get_unixtime()
 						end
 					end
