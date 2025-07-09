@@ -96,16 +96,6 @@ local function RestoreGlobals()
 	UI_OPEN.DigSettings = false
 end
 
-local function CreatePaddedText(text, desired_width)
-	local text_length = string.len(text)
-	local total_padding = math.max(0, desired_width - text_length)
-	local left_padding = math.floor(total_padding / 2)
-	local right_padding = total_padding - left_padding
-
-	-- Create the padded string
-	return string.rep(" ", left_padding) .. text .. string.rep(" ", right_padding)
-end
-
 local function CanDig()
 	return Player.character
 		and Player.character:find_first_child_class("Tool")
@@ -258,108 +248,114 @@ end
 
 -- Interface and Input functions
 
+-- UI "Library"
+-- UI Manager Implementation
+local UIManager = {
+	ActiveWindows = {},
+	DefaultPadding = 15,
+	DefaultButtonWidth = 100,
+}
+
+function UIManager.CreatePaddedText(Text, Width)
+	Width = Width or UIManager.DefaultButtonWidth
+	local Padding = math.max(0, Width - #Text)
+	local Left = math.floor(Padding / 2)
+	local Right = Padding - Left
+	return string.rep(" ", Left) .. Text .. string.rep(" ", Right)
+end
+
+function UIManager.CreateWindow(Title, SizeX, SizeY, PosX, PosY)
+	if UIManager.ActiveWindows[Title] then
+		gui.remove(Title)
+	end
+
+	local UI = gui.create(Title, false)
+	UI:set_pos(PosX or 100, PosY or 100)
+	UI:set_size(SizeX, SizeY)
+
+	UIManager.ActiveWindows[Title] = UI
+	return UI
+end
+
+function UIManager.CloseWindow(Title)
+	if UIManager.ActiveWindows[Title] then
+		gui.remove(Title)
+		UIManager.ActiveWindows[Title] = nil
+	end
+end
+
+function UIManager.ToggleWindow(Title, CreateFunc)
+	if UIManager.ActiveWindows[Title] then
+		UIManager.CloseWindow(Title)
+		return false
+	else
+		CreateFunc()
+		return true
+	end
+end
+
+function UIManager.AddButton(UI, Text, Callback, Width)
+	return UI:add_button(UIManager.CreatePaddedText(Text, Width), Callback)
+end
+
+function UIManager.AddSlider(UI, Label, Min, Max, Value, IsInt, ConfigKey)
+	local Slider = UI:add_slider(Label, Min, Max, Value)
+
+	Slider:change_callback(function()
+		local Val = IsInt and math.floor(Slider:get_value()) or Slider:get_value()
+		CONFIG[ConfigKey] = Val
+		SaveConfiguration()
+	end)
+
+	return Slider
+end
+
+function UIManager.AddCheckbox(UI, Label, Value, ConfigKey)
+	local Checkbox = UI:add_checkbox(Label, Value)
+
+	Checkbox:change_callback(function()
+		CONFIG[ConfigKey] = Checkbox:get_value()
+		SaveConfiguration()
+	end)
+
+	return Checkbox
+end
+
 local function CreateDigSettingsUI()
-	local ui = gui.create("Dig Settings", false)
-	ui:set_pos(100, 100)
-	ui:set_size(400, 380)
-
-	local slider = ui:add_slider("Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance)
-	slider:change_callback(function()
-		CONFIG.Tolerance = slider:get_value()
-		SaveConfiguration()
-	end)
-
-	local slider2 = ui:add_slider("Wait When Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenClicked)
-	slider2:change_callback(function()
-		CONFIG.WaitWhenClicked = floor(slider2:get_value())
-		SaveConfiguration()
-	end)
-
-	local slider3 = ui:add_slider("Wait When Not Clicked - Doesn't Support Decimals", 0, 200, CONFIG.WaitWhenNotClicked)
-	slider3:change_callback(function()
-		CONFIG.WaitWhenNotClicked = floor(slider3:get_value())
-		SaveConfiguration()
-	end)
-
-	local CMPREPEAT = ui:add_slider("CMP Repeat Cycle - WHOLE NUMBERS ONLY.", 1, 10, CONFIG.REPEAT_CYCLE)
-	CMPREPEAT:change_callback(function()
-		CONFIG.REPEAT_CYCLE = floor(CMPREPEAT:get_value())
-		SaveConfiguration()
-	end)
-
-	local CMPWAIT = ui:add_slider("CMP Wait Time - WHOLE NUMBERS ONLY.", 0, 1000, CONFIG.CMP_WAIT)
-	CMPWAIT:change_callback(function()
-		CONFIG.CMP_WAIT = floor(CMPWAIT:get_value())
-		SaveConfiguration()
-	end)
-
-	local WaitBetweenDig = ui:add_slider("Wait Between Dig - WHOLE NUMBERS ONLY.", 300, 1000, CONFIG.WAIT_BETWEEN_DIG)
-	WaitBetweenDig:change_callback(function()
-		CONFIG.WAIT_BETWEEN_DIG = floor(WaitBetweenDig:get_value())
-		SaveConfiguration()
-	end)
-
-	local automode = ui:add_checkbox("Auto Start Digging", AUTO_MODE)
-	automode:change_callback(function()
-		AUTO_MODE = automode:get_value()
-	end)
+	local UI = UIManager.CreateWindow("Dig Settings", 400, 380)
+	UIManager.AddSlider(UI, "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance, false, "Tolerance")
+	UIManager.AddSlider(UI, "Wait When Clicked", 0, 200, CONFIG.WaitWhenClicked, true, "WaitWhenClicked")
+	UIManager.AddSlider(UI, "Wait When Not Clicked", 0, 200, CONFIG.WaitWhenNotClicked, true, "WaitWhenNotClicked")
+	UIManager.AddSlider(UI, "CMP Repeat Cycle", 1, 10, CONFIG.REPEAT_CYCLE, true, "REPEAT_CYCLE")
+	UIManager.AddSlider(UI, "CMP Wait Time", 0, 1000, CONFIG.CMP_WAIT, true, "CMP_WAIT")
+	UIManager.AddSlider(UI, "Wait Between Dig", 300, 1000, CONFIG.WAIT_BETWEEN_DIG, true, "WAIT_BETWEEN_DIG")
+	UIManager.AddCheckbox(UI, "Auto Start Digging", AUTO_MODE, "AUTO_MODE")
 end
 
 local function CreateMovementSettingsUI()
-	local Movement_Settings = gui.create("Movement Settings", false)
-	Movement_Settings:set_pos(475, 100)
-	Movement_Settings:set_size(400, 200)
-
-	local AdvancedMovement =
-		Movement_Settings:add_checkbox("Enable Advanced Movement", CONFIG.ADVANCED_MOVEMENT_ENABLED)
-	AdvancedMovement:change_callback(function()
-		CONFIG.ADVANCED_MOVEMENT_ENABLED = AdvancedMovement:get_value()
-		SaveConfiguration()
-	end)
-
-	local MovementRepeatZ =
-		Movement_Settings:add_slider("Movement Repeat FORWARD/BACKWARD", 1, 10, CONFIG.MOVEMENT_REPEAT_Z)
-	MovementRepeatZ:change_callback(function()
-		CONFIG.MOVEMENT_REPEAT_Z = floor(MovementRepeatZ:get_value())
-		SaveConfiguration()
-	end)
-
-	local MovementRepeatX = Movement_Settings:add_slider("Movement Repeat LEFT/RIGHT", 1, 10, CONFIG.MOVEMENT_REPEAT_X)
-	MovementRepeatX:change_callback(function()
-		CONFIG.MOVEMENT_REPEAT_X = floor(MovementRepeatX:get_value())
-		SaveConfiguration()
-	end)
+    local UI = UIManager.CreateWindow("Movement Settings", 400, 200, 475, 100)
+    UIManager.AddCheckbox(UI, "Enable Advanced Movement", CONFIG.ADVANCED_MOVEMENT_ENABLED, "ADVANCED_MOVEMENT_ENABLED")
+    UIManager.AddSlider(UI, "Movement Repeat FORWARD/BACKWARD", 1, 10, CONFIG.MOVEMENT_REPEAT_Z, true, "MOVEMENT_REPEAT_Z")
+    UIManager.AddSlider(UI, "Movement Repeat LEFT/RIGHT", 1, 10, CONFIG.MOVEMENT_REPEAT_X, true, "MOVEMENT_REPEAT_X")
 end
 
 local function CreateSettingsUI()
-	local MainUI = gui.create("Digging Manager", false)
-	MainUI:set_pos(475, 280)
-	MainUI:set_size(400, 200)
+	local UI = UIManager.CreateWindow("Digging Manager", 400, 200, 475, 280)
 
-	local DigSettings = MainUI:add_button(CreatePaddedText("Dig Settings", 97), function()
-		UI_OPEN.DigSettings = not UI_OPEN.DigSettings
-		if UI_OPEN.DigSettings then
-			CreateDigSettingsUI()
-		else
-			gui.remove("Dig Settings")
-		end
-	end)
+	UIManager.AddButton(UI, "Dig Settings", function()
+		UI_OPEN.DigSettings = UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
+	end, 97)
 
-	local MovementSettings = MainUI:add_button(CreatePaddedText("Movement Settings", 88), function()
-		UI_OPEN.MovementSettings = not UI_OPEN.MovementSettings
-		if UI_OPEN.MovementSettings then
-			CreateMovementSettingsUI()
-		else
-			gui.remove("Movement Settings")
-		end
-	end)
+	UIManager.AddButton(UI, "Movement Settings", function()
+		UI_OPEN.MovementSettings = UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
+	end, 88)
 
-	local Close = MainUI:add_button(CreatePaddedText("Close", 104), function()
-		gui.remove("Digging Manager")
-		gui.remove("Dig Settings")
-		gui.remove("Movement Settings")
+	UIManager.AddButton(UI, "Close", function()
+		UIManager.CloseWindow("Digging Manager")
+		UIManager.CloseWindow("Dig Settings")
+		UIManager.CloseWindow("Movement Settings")
 		hook.removekey(0x51, "MAIN_KEY_LISTENER")
-	end)
+	end, 104)
 end
 
 local function HandleInput(Keydown)
