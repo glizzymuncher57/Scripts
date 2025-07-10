@@ -381,7 +381,7 @@ local function CreateMovementSettingsUI()
 end
 
 local function CreateAutoSellSettingsUI()
-	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 300, 850, 100)
+	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 265, 850, 100)
 	UI:add_label("NOTE: AUTO SELL ONLY WORKS IF YOU HAVE THE GAMEPASS!")
 	UIManager.AddCheckbox(UI, "Enable Auto Sell - Auto Dig Extension", CONFIG.AUTO_SELL_ENABLED, "AUTO_SELL_ENABLED")
 	UIManager.AddSlider(UI, "Auto Sell Time (Seconds)", 1, 9999, CONFIG.AUTO_SELL_TIME, true, "AUTO_SELL_TIME")
