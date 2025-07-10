@@ -21,6 +21,8 @@ local CONFIG = {
 	-- Auto Dig Add On
 	AUTO_SELL_ENABLED = false,
 	AUTO_SELL_TIME = 300,
+	AUTO_SELL_BUTTON_OFFSET_X = 17.5,
+	AUTO_SELL_BUTTON_OFFSET_Y = 10,
 }
 
 -- State
@@ -176,7 +178,8 @@ local function SellInventory()
 		local NewPos = CurrentMousePos:lerp(SellPosition, 0.25)
 		input.set_mouse_position(NewPos)
 		wait(25)
-	until abs(CurrentMousePos.x - SellPosition.x) < 17.5 and abs(CurrentMousePos.y - SellPosition.y) < 10
+	until abs(CurrentMousePos.x - SellPosition.x) <= CONFIG.AUTO_SELL_BUTTON_OFFSET_X
+		and abs(CurrentMousePos.y - SellPosition.y) <= CONFIG.AUTO_SELL_BUTTON_OFFSET_Y
 	wait(1000)
 	simulate_mouse_click(MOUSE1)
 	wait(1000)
@@ -378,10 +381,30 @@ local function CreateMovementSettingsUI()
 end
 
 local function CreateAutoSellSettingsUI()
-	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 170, 850, 100)
+	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 300, 850, 100)
 	UI:add_label("NOTE: AUTO SELL ONLY WORKS IF YOU HAVE THE GAMEPASS!")
 	UIManager.AddCheckbox(UI, "Enable Auto Sell - Auto Dig Extension", CONFIG.AUTO_SELL_ENABLED, "AUTO_SELL_ENABLED")
 	UIManager.AddSlider(UI, "Auto Sell Time (Seconds)", 1, 9999, CONFIG.AUTO_SELL_TIME, true, "AUTO_SELL_TIME")
+	UIManager.AddSlider(
+		UI,
+		"Auto Sell Button Range X",
+		1,
+		100,
+		CONFIG.AUTO_SELL_BUTTON_OFFSET_X,
+		false,
+		"AUTO_SELL_BUTTON_OFFSET_X"
+	)
+
+	UIManager.AddSlider(
+		UI,
+		"Auto Sell Button Range Y",
+		1,
+		100,
+		CONFIG.AUTO_SELL_BUTTON_OFFSET_Y,
+		false,
+		"AUTO_SELL_BUTTON_OFFSET_Y"
+	)
+	UI:add_label("READ: Setting the range too low will cause the script to fail.")
 end
 
 local function CreateSettingsUI()
