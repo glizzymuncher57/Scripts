@@ -176,7 +176,7 @@ local function SellInventory()
 		local NewPos = CurrentMousePos:lerp(SellPosition, 0.25)
 		input.set_mouse_position(NewPos)
 		wait(25)
-	until abs(CurrentMousePos.x - SellPosition.x) < 17.5 and abs(CurrentMousePos.y - SellPosition.y) < 17.5
+	until abs(CurrentMousePos.x - SellPosition.x) < 17.5 and abs(CurrentMousePos.y - SellPosition.y) < 10
 	wait(1000)
 	simulate_mouse_click(MOUSE1)
 	wait(1000)
