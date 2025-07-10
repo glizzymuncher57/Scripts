@@ -4,17 +4,21 @@ local PlayerGui = Player and Player:find_first_child("PlayerGui")
 
 -- Configuration
 local CONFIG = {
+	-- Base Auto Dig
 	Tolerance = 27, -- Distance tolerance for clicking.
 	WaitWhenClicked = 50, -- Wait time when clicked (miliseconds)
 	WaitWhenNotClicked = 0, -- Wait time when not clicked (miliseconds)
+
+	-- Auto Dig + Auto Move
+	AUTO_MODE = false,
 	REPEAT_CYCLE = 3,
 	CMP_WAIT = 300,
 	WAIT_BETWEEN_DIG = 500, -- Wait time between the mouse clicking and the script checking if the ui is valid (miliseconds)
-	AUTO_MODE = false,
+	-- Auto Dig + Auto Move Add On
 	ADVANCED_MOVEMENT_ENABLED = false,
 	MOVEMENT_REPEAT_Z = 3,
 	MOVEMENT_REPEAT_X = 3,
-
+	-- Auto Dig Add On
 	AUTO_SELL_ENABLED = false,
 	AUTO_SELL_TIME = 300,
 }
@@ -25,10 +29,6 @@ local DIGGING = false
 local CURRENT_MOVEMENT_PATTERN = 1
 local CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 local LAST_SELL_TIME = 0
-local UI_OPEN = {
-	MovementSettings = false,
-	DigSettings = false,
-}
 
 -- Constants
 local FILE_NAME = "DigConfig.json"
@@ -95,8 +95,6 @@ local function RestoreGlobals()
 	CURRENT_MOVEMENT_PATTERN = 1
 	CURRENT_MOVEMENT_PATTERN_REPEAT = 0
 	LAST_SELL_TIME = 0
-	UI_OPEN.MovementSettings = false
-	UI_OPEN.DigSettings = false
 end
 
 local function CanDig()
@@ -390,11 +388,11 @@ local function CreateSettingsUI()
 	local UI = UIManager.CreateWindow("Digging Manager", 400, 250, 475, 280)
 
 	UIManager.AddButton(UI, "Dig Settings", function()
-		UI_OPEN.DigSettings = UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
+		UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
 	end, 97)
 
 	UIManager.AddButton(UI, "Movement Settings", function()
-		UI_OPEN.MovementSettings = UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
+		UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
 	end, 88)
 
 	UIManager.AddButton(UI, "Auto Sell Settings", function()
@@ -405,6 +403,7 @@ local function CreateSettingsUI()
 		UIManager.CloseWindow("Digging Manager")
 		UIManager.CloseWindow("Dig Settings")
 		UIManager.CloseWindow("Movement Settings")
+		UIManager.CloseWindow("Auto Sell Settings")
 		hook.removekey(0x51, "MAIN_KEY_LISTENER")
 	end, 104)
 end
