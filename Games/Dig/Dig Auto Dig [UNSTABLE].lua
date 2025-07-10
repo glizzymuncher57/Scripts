@@ -352,7 +352,7 @@ function UIManager.AddCheckbox(UI, Label, Value, ConfigKey)
 end
 
 local function CreateDigSettingsUI()
-	local UI = UIManager.CreateWindow("Dig Settings", 400, 410)
+	local UI = UIManager.CreateWindow("Dig Settings", 400, 340)
 	UIManager.AddSlider(UI, "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance, false, "Tolerance")
 	UIManager.AddSlider(UI, "Wait When Clicked", 0, 200, CONFIG.WaitWhenClicked, true, "WaitWhenClicked")
 	UIManager.AddSlider(UI, "Wait When Not Clicked", 0, 200, CONFIG.WaitWhenNotClicked, true, "WaitWhenNotClicked")
@@ -363,7 +363,7 @@ local function CreateDigSettingsUI()
 end
 
 local function CreateMovementSettingsUI()
-	local UI = UIManager.CreateWindow("Movement Settings", 400, 200, 475, 100)
+	local UI = UIManager.CreateWindow("Movement Settings", 400, 185, 475, 100)
 	UIManager.AddCheckbox(UI, "Enable Advanced Movement", CONFIG.ADVANCED_MOVEMENT_ENABLED, "ADVANCED_MOVEMENT_ENABLED")
 	UIManager.AddSlider(
 		UI,
@@ -378,14 +378,14 @@ local function CreateMovementSettingsUI()
 end
 
 local function CreateAutoSellSettingsUI()
-	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 200, 850, 100)
+	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 170, 850, 100)
 	UI:add_label("NOTE: AUTO SELL ONLY WORKS IF YOU HAVE THE GAMEPASS!")
 	UIManager.AddCheckbox(UI, "Enable Auto Sell - Auto Dig Extension", CONFIG.AUTO_SELL_ENABLED, "AUTO_SELL_ENABLED")
 	UIManager.AddSlider(UI, "Auto Sell Time (Seconds)", 1, 9999, CONFIG.AUTO_SELL_TIME, true, "AUTO_SELL_TIME")
 end
 
 local function CreateSettingsUI()
-	local UI = UIManager.CreateWindow("Digging Manager", 400, 250, 475, 280)
+	local UI = UIManager.CreateWindow("Digging Manager", 400, 230, 475, 280)
 
 	UIManager.AddButton(UI, "Dig Settings", function()
 		UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
