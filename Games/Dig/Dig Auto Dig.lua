@@ -4,16 +4,23 @@ local PlayerGui = Player and Player:find_first_child("PlayerGui")
 
 -- Configuration
 local CONFIG = {
+	-- Base Auto Dig
 	Tolerance = 27, -- Distance tolerance for clicking.
 	WaitWhenClicked = 50, -- Wait time when clicked (miliseconds)
 	WaitWhenNotClicked = 0, -- Wait time when not clicked (miliseconds)
+
+	-- Auto Dig + Auto Move
+	AUTO_MODE = false,
 	REPEAT_CYCLE = 3,
 	CMP_WAIT = 300,
 	WAIT_BETWEEN_DIG = 500, -- Wait time between the mouse clicking and the script checking if the ui is valid (miliseconds)
-	AUTO_MODE = false,
+	-- Auto Dig + Auto Move Add On
 	ADVANCED_MOVEMENT_ENABLED = false,
 	MOVEMENT_REPEAT_Z = 3,
 	MOVEMENT_REPEAT_X = 3,
+	-- Auto Dig Add On
+	AUTO_SELL_ENABLED = false,
+	AUTO_SELL_TIME = 300,
 }
 
 -- State
@@ -21,10 +28,7 @@ local DEBUG = true
 local DIGGING = false
 local CURRENT_MOVEMENT_PATTERN = 1
 local CURRENT_MOVEMENT_PATTERN_REPEAT = 0
-local UI_OPEN = {
-	MovementSettings = false,
-	DigSettings = false,
-}
+local LAST_SELL_TIME = 0
 
 -- Constants
 local FILE_NAME = "DigConfig.json"
@@ -90,14 +94,13 @@ local function RestoreGlobals()
 	DIGGING = false
 	CURRENT_MOVEMENT_PATTERN = 1
 	CURRENT_MOVEMENT_PATTERN_REPEAT = 0
-	UI_OPEN.MovementSettings = false
-	UI_OPEN.DigSettings = false
+	LAST_SELL_TIME = 0
 end
 
 local function CanDig()
 	return Player.character
-		and Player.character:find_first_child_class("Tool")
-		and Player.character:find_first_child_class("Tool").name:lower():find("shovel")
+			and Player.character:find_first_child_class("Tool")
+			and Player.character:find_first_child_class("Tool").name:lower():find("shovel")
 		or Player.character:find_first_child_class("Tool").name == "Beast Slayer"
 end
 
@@ -141,6 +144,45 @@ local function LoadConfiguration()
 	end
 
 	return true
+end
+
+-- Sell Functions
+local function ReturnSellInventoryPosition()
+	local Inventory = PlayerGui:find_first_child("Backpack")
+	if not Inventory:isvalid() then
+		LogFunc("Inventory UI is not valid or does not exist.")
+		return nil_instance
+	end
+
+	local SellButton = Inventory:find_first_descendant("SellInventory")
+	if not SellButton:isvalid() then
+		LogFunc("Sell Inventory button is not valid or does not exist.")
+		return nil_instance
+	end
+
+	local SellButtonPos = SellButton.gui_position
+	local SellButtonSize = SellButton.gui_size
+
+	return SellButtonPos + (SellButtonSize / 2)
+end
+
+local function SellInventory()
+	local OriginalMousePos = input.get_mouse_position()
+	wait(2000)
+	input.simulate_press(0x47)
+	local SellPosition = ReturnSellInventoryPosition()
+	repeat
+		local CurrentMousePos = input.get_mouse_position()
+		local NewPos = CurrentMousePos:lerp(SellPosition, 0.25)
+		input.set_mouse_position(NewPos)
+		wait(25)
+	until abs(CurrentMousePos.x - SellPosition.x) < 17.5 and abs(CurrentMousePos.y - SellPosition.y) < 17.5
+	wait(1000)
+	simulate_mouse_click(MOUSE1)
+	wait(1000)
+	input.set_mouse_position(OriginalMousePos)
+	input.simulate_press(0x47)
+	wait(500)
 end
 
 -- Movement Functions
@@ -237,9 +279,7 @@ local function StartDigging()
 end
 
 -- Interface and Input functions
-
 -- UI "Library"
--- UI Manager Implementation
 local UIManager = {
 	ActiveWindows = {},
 	DefaultPadding = 15,
@@ -312,7 +352,7 @@ function UIManager.AddCheckbox(UI, Label, Value, ConfigKey)
 end
 
 local function CreateDigSettingsUI()
-	local UI = UIManager.CreateWindow("Dig Settings", 400, 380)
+	local UI = UIManager.CreateWindow("Dig Settings", 400, 340)
 	UIManager.AddSlider(UI, "Tolerance - Supports Decimals", 0, 150, CONFIG.Tolerance, false, "Tolerance")
 	UIManager.AddSlider(UI, "Wait When Clicked", 0, 200, CONFIG.WaitWhenClicked, true, "WaitWhenClicked")
 	UIManager.AddSlider(UI, "Wait When Not Clicked", 0, 200, CONFIG.WaitWhenNotClicked, true, "WaitWhenNotClicked")
@@ -323,7 +363,7 @@ local function CreateDigSettingsUI()
 end
 
 local function CreateMovementSettingsUI()
-	local UI = UIManager.CreateWindow("Movement Settings", 400, 200, 475, 100)
+	local UI = UIManager.CreateWindow("Movement Settings", 400, 185, 475, 100)
 	UIManager.AddCheckbox(UI, "Enable Advanced Movement", CONFIG.ADVANCED_MOVEMENT_ENABLED, "ADVANCED_MOVEMENT_ENABLED")
 	UIManager.AddSlider(
 		UI,
@@ -337,21 +377,33 @@ local function CreateMovementSettingsUI()
 	UIManager.AddSlider(UI, "Movement Repeat LEFT/RIGHT", 1, 10, CONFIG.MOVEMENT_REPEAT_X, true, "MOVEMENT_REPEAT_X")
 end
 
+local function CreateAutoSellSettingsUI()
+	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 170, 850, 100)
+	UI:add_label("NOTE: AUTO SELL ONLY WORKS IF YOU HAVE THE GAMEPASS!")
+	UIManager.AddCheckbox(UI, "Enable Auto Sell - Auto Dig Extension", CONFIG.AUTO_SELL_ENABLED, "AUTO_SELL_ENABLED")
+	UIManager.AddSlider(UI, "Auto Sell Time (Seconds)", 1, 9999, CONFIG.AUTO_SELL_TIME, true, "AUTO_SELL_TIME")
+end
+
 local function CreateSettingsUI()
-	local UI = UIManager.CreateWindow("Digging Manager", 400, 200, 475, 280)
+	local UI = UIManager.CreateWindow("Digging Manager", 400, 230, 475, 280)
 
 	UIManager.AddButton(UI, "Dig Settings", function()
-		UI_OPEN.DigSettings = UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
+		UIManager.ToggleWindow("Dig Settings", CreateDigSettingsUI)
 	end, 97)
 
 	UIManager.AddButton(UI, "Movement Settings", function()
-		UI_OPEN.MovementSettings = UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
+		UIManager.ToggleWindow("Movement Settings", CreateMovementSettingsUI)
 	end, 88)
+
+	UIManager.AddButton(UI, "Auto Sell Settings", function()
+		UIManager.ToggleWindow("Auto Sell Settings", CreateAutoSellSettingsUI)
+	end, 92)
 
 	UIManager.AddButton(UI, "Close", function()
 		UIManager.CloseWindow("Digging Manager")
 		UIManager.CloseWindow("Dig Settings")
 		UIManager.CloseWindow("Movement Settings")
+		UIManager.CloseWindow("Auto Sell Settings")
 		hook.removekey(0x51, "MAIN_KEY_LISTENER")
 	end, 104)
 end
@@ -372,11 +424,19 @@ local function HandleInput(Keydown)
 			if CONFIG.AUTO_MODE then
 				CURRENT_MOVEMENT_PATTERN = 1
 				CURRENT_MOVEMENT_PATTERN_REPEAT = 0
+				LAST_SELL_TIME = 0
 
 				while CONFIG.AUTO_MODE and CanDig() and not menu_active() do
 					DIGGING = true
 					SafeCall(ExecuteMovementPattern, "Movement Manager")
 					SafeCall(StartDigging, "Digging Manager")
+
+					if CONFIG.AUTO_SELL_ENABLED then
+						if (get_unixtime() - LAST_SELL_TIME) >= CONFIG.AUTO_SELL_TIME then
+							SafeCall(SellInventory, "Auto Sell Manager")
+							LAST_SELL_TIME = get_unixtime()
+						end
+					end
 					wait(300)
 				end
 			else
