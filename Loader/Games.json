@@ -1,8 +1,4 @@
 {
-    "44636121": {
-        "Entity Support": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/The%20Final%20Stand%202/NPC%20Support.lua",
-        "Legacy Entity Support": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/The%20Final%20Stand%202/NPC%20Support%20%5BLEGACY%5D.lua"
-    },
     "126884695634066": {
         "Teleports": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Grow%20A%20Garden/Grow%20A%20Garden%20Teleports.lua"
     },
@@ -18,6 +14,7 @@
     },
     "Misc": {
         "China Hat": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/China%20Hat.lua",
-        "FOV Zoom": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/Zoom%20FOV.lua"
+        "FOV Zoom": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/Zoom%20FOV.lua",
+        "Universal NPC Support": "https://raw.githubusercontent.com/glizzymuncher57/Scripts/refs/heads/main/Games/Misc/Universal%20NPC%20Support.lua"
     }
 }
