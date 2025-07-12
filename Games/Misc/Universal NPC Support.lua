@@ -32,10 +32,10 @@ local function Initialise()
 		for _, NPC in pairs(Path:get_children()) do
 			if NPC:isa("Model") and NPC:find_first_child_class("Humanoid") and NPC:isvalid() then
 				local Humanoid = NPC:find_first_child_class("Humanoid")
-				local HumanoidRootPart = NPC:find_first_child("HumanoidRootPart")
+				local Head = NPC:find_first_child("Head") or NPC:find_first_child_class("Part")
 
 				if Humanoid and Humanoid:isvalid() then
-					if NPC.name ~= Player.name and HumanoidRootPart:isvalid() then
+					if NPC.name ~= Player.name and Head:isvalid() then
 						local MinBound = vector3(math.huge, math.huge, math.huge)
 						local MaxBound = vector3(-math.huge, -math.huge, -math.huge)
 
@@ -62,7 +62,7 @@ local function Initialise()
 						end
 
 						local BoundingSize = MaxBound - MinBound
-						add_entity(NPC.name, HumanoidRootPart, Humanoid, true, BoundingSize / 2, BoundingSize / 2)
+						add_entity(NPC.name, Head, Humanoid, true, BoundingSize / 2, BoundingSize / 2)
 					end
 				end
 			end
