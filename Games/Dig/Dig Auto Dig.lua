@@ -20,6 +20,7 @@ local CONFIG = {
 	MOVEMENT_REPEAT_X = 3,
 	-- Auto Dig Add On
 	AUTO_SELL_ENABLED = false,
+	SHIFT_LOCK_ENABLED = false,
 	AUTO_SELL_TIME = 300,
 	AUTO_SELL_BUTTON_OFFSET_X = 17.5,
 	AUTO_SELL_BUTTON_OFFSET_Y = 10,
@@ -169,6 +170,10 @@ local function ReturnSellInventoryPosition()
 end
 
 local function SellInventory()
+	if CONFIG.SHIFT_LOCK_ENABLED then
+		input.simulate_press(0xA0) -- Simulate Shift key press for shift lock
+	end
+
 	local OriginalMousePos = input.get_mouse_position()
 	wait(2000)
 	input.simulate_press(0x47)
@@ -186,6 +191,10 @@ local function SellInventory()
 	input.set_mouse_position(OriginalMousePos)
 	input.simulate_press(0x47)
 	wait(500)
+
+	if CONFIG.SHIFT_LOCK_ENABLED then
+		input.simulate_press(0xA0)
+	end
 end
 
 -- Movement Functions
@@ -381,9 +390,10 @@ local function CreateMovementSettingsUI()
 end
 
 local function CreateAutoSellSettingsUI()
-	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 265, 850, 100)
+	local UI = UIManager.CreateWindow("Auto Sell Settings", 400, 290, 850, 100)
 	UI:add_label("NOTE: AUTO SELL ONLY WORKS IF YOU HAVE THE GAMEPASS!")
 	UIManager.AddCheckbox(UI, "Enable Auto Sell - Auto Dig Extension", CONFIG.AUTO_SELL_ENABLED, "AUTO_SELL_ENABLED")
+	UIManager.AddCheckbox(UI, "Toggle Shift Lock On Auto Sell", CONFIG.SHIFT_LOCK_ENABLED, "SHIFT_LOCK_ENABLED")
 	UIManager.AddSlider(UI, "Auto Sell Time (Seconds)", 1, 9999, CONFIG.AUTO_SELL_TIME, true, "AUTO_SELL_TIME")
 	UIManager.AddSlider(
 		UI,
