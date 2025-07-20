@@ -182,14 +182,8 @@ local function Init()
 			return
 		end
 
-		local s, e = pcall(function()
-			HandleRendering(PositionData.Dealers, root, CONFIG.DealerEsp, DealerColor)
-			HandleRendering(PositionData.PointsOfInterest, root, CONFIG.PoiEsp, PoiColor)
-		end)
-
-		if not s then
-			log.add("Error in ESP rendering: " .. e, color(1, 0, 0, 1))
-		end
+		HandleRendering(PositionData.Dealers, root, CONFIG.DealerEsp, DealerColor)
+		HandleRendering(PositionData.PointsOfInterest, root, CONFIG.PoiEsp, PoiColor)
 	end)
 end
 
