@@ -1,23 +1,8 @@
---[[
-        ESP For Dealers and Points of Interest
-        Binds:
-            LCtrl + LShift + 1 - Toggle ESP
-            LCtrl + LShift + 2 - Toggle Dealer ESP
-            LCtrl + LShift + 3 - Toggle POI ESP
-    ]]
-
 local Players = game:get_service("Players")
 local Player = Players.local_player
 
-local EspActive = true
-local PoiEsp = false
-local DealerEsp = false
-
 local DealerColor = color(1, 0, 0, 1)
 local PoiColor = color(0, 1, 0, 1)
-
-local VK_LSHIFT = 0xA0
-local VK_LCTRL = 0xA2
 
 local PositionData = {
 	Dealers = {
@@ -37,28 +22,10 @@ local PositionData = {
 	},
 }
 
-local Hotkeys = {
-	[0x31] = {
-		name = "ESP",
-		toggle = function()
-			EspActive = not EspActive
-			return EspActive
-		end,
-	},
-	[0x32] = {
-		name = "Dealer ESP",
-		toggle = function()
-			DealerEsp = not DealerEsp
-			return DealerEsp
-		end,
-	},
-	[0x33] = {
-		name = "POI ESP",
-		toggle = function()
-			PoiEsp = not PoiEsp
-			return PoiEsp
-		end,
-	},
+local CONFIG = {
+	EspActive = false,
+	DealerEsp = false,
+	PoiEsp = false,
 }
 
 local floor = math.floor
@@ -66,6 +33,75 @@ local world_to_screen = world_to_screen
 local in_screen = in_screen
 local render_add_text = render.add_text
 local key_down = input.key_down
+
+local UIManager = {
+	ActiveWindows = {},
+	DefaultPadding = 15,
+	DefaultButtonWidth = 100,
+}
+
+function UIManager.CreatePaddedText(Text, Width)
+	Width = Width or UIManager.DefaultButtonWidth
+	local Padding = math.max(0, Width - #Text)
+	local Left = math.floor(Padding / 2)
+	local Right = Padding - Left
+	return string.rep(" ", Left) .. Text .. string.rep(" ", Right)
+end
+
+function UIManager.CreateWindow(Title, SizeX, SizeY, PosX, PosY)
+	if UIManager.ActiveWindows[Title] then
+		gui.remove(Title)
+	end
+
+	local UI = gui.create(Title, false)
+	UI:set_pos(PosX or 100, PosY or 100)
+	UI:set_size(SizeX, SizeY)
+
+	UIManager.ActiveWindows[Title] = UI
+	return UI
+end
+
+function UIManager.CloseWindow(Title)
+	if UIManager.ActiveWindows[Title] then
+		gui.remove(Title)
+		UIManager.ActiveWindows[Title] = nil
+	end
+end
+
+function UIManager.ToggleWindow(Title, CreateFunc)
+	if UIManager.ActiveWindows[Title] then
+		UIManager.CloseWindow(Title)
+		return false
+	else
+		CreateFunc()
+		return true
+	end
+end
+
+function UIManager.AddButton(UI, Text, Callback, Width)
+	return UI:add_button(UIManager.CreatePaddedText(Text, Width), Callback)
+end
+
+function UIManager.AddSlider(UI, Label, Min, Max, Value, IsInt, ConfigKey)
+	local Slider = UI:add_slider(Label, Min, Max, Value)
+
+	Slider:change_callback(function()
+		local Val = IsInt and math.floor(Slider:get_value()) or Slider:get_value()
+		CONFIG[ConfigKey] = Val
+	end)
+
+	return Slider
+end
+
+function UIManager.AddCheckbox(UI, Label, Value, ConfigKey)
+	local Checkbox = UI:add_checkbox(Label, Value)
+
+	Checkbox:change_callback(function()
+		CONFIG[ConfigKey] = Checkbox:get_value()
+	end)
+
+	return Checkbox
+end
 
 local function GetDistance(pos1, pos2)
 	return floor((pos1 - pos2):length())
@@ -118,24 +154,21 @@ local function HandleRendering(data, root, active, is_dealer)
 	end
 end
 
-local function RegisterInputs()
-	for key, hk in pairs(Hotkeys) do
-		hook.addkey(key, tostring(key), function()
-			if not key_down(VK_LCTRL) or not key_down(VK_LSHIFT) or not key_down(key) then
-				return
-			end
-
-			local new_state = hk.toggle()
-			log.notification("Toggled " .. hk.name .. " to " .. tostring(new_state), "Info")
-		end)
-	end
-end
-
 local function Init()
-	RegisterInputs()
+	local EspWindow = UIManager.CreateWindow("ESP Settings", 300, 185)
+	UIManager.AddCheckbox(EspWindow, "Enable ESP", CONFIG.EspActive, "EspActive")
+	UIManager.AddCheckbox(EspWindow, "Enable Dealer ESP", CONFIG.DealerEsp, "DealerEsp")
+	UIManager.AddCheckbox(EspWindow, "Enable POI ESP", CONFIG.PoiEsp, "PoiEsp")
+	UIManager.AddButton(EspWindow, "Close", function()
+		hook.removeall()
+		UIManager.CloseWindow("ESP Settings")
+		CONFIG.EspActive = false
+		CONFIG.DealerEsp = false
+		CONFIG.PoiEsp = false
+	end, 69)
 
 	hook.add("render", "esp_render", function()
-		if not EspActive then
+		if not CONFIG.EspActive then
 			return
 		end
 
@@ -146,8 +179,8 @@ local function Init()
 		end
 
 		local s, e = pcall(function()
-			HandleRendering(PositionData.Dealers, root, DealerEsp, true)
-			HandleRendering(PositionData.PointsOfInterest, root, PoiEsp, false)
+			HandleRendering(PositionData.Dealers, root, CONFIG.DealerEsp, true)
+			HandleRendering(PositionData.PointsOfInterest, root, CONFIG.PoiEsp, false)
 		end)
 
 		if not s then
