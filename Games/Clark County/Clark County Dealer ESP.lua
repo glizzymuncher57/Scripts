@@ -107,7 +107,7 @@ local function GetDistance(pos1, pos2)
 	return floor((pos1 - pos2):length())
 end
 
-local function CreateEspText(root, name, world_pos, is_dealer)
+local function CreateEspText(root, name, world_pos, colour)
 	local dist = GetDistance(root.position, world_pos)
 	if dist <= 5 then
 		return
@@ -134,7 +134,7 @@ local function CreateEspText(root, name, world_pos, is_dealer)
 	for _, offset in ipairs(outline_offsets) do
 		render_add_text(name_pos + offset, name, color(0, 0, 0, 1))
 	end
-	render_add_text(name_pos, name, is_dealer and DealerColor or PoiColor)
+	render_add_text(name_pos, name, colour)
 
 	for _, offset in ipairs(outline_offsets) do
 		render_add_text(dist_pos + offset, dist_text, color(0, 0, 0, 1))
@@ -142,14 +142,14 @@ local function CreateEspText(root, name, world_pos, is_dealer)
 	render_add_text(dist_pos, dist_text, color(1, 1, 1, 1))
 end
 
-local function HandleRendering(data, root, active, is_dealer)
+local function HandleRendering(data, root, active, colour)
 	if not active or not root then
 		return
 	end
 
 	for name, pos in pairs(data) do
 		if pos then
-			CreateEspText(root, name, pos, is_dealer)
+			CreateEspText(root, name, pos, colour)
 		end
 	end
 end
@@ -173,14 +173,18 @@ local function Init()
 		end
 
 		local char = Player.character
-		local root = char and char:find_first_child("HumanoidRootPart")
+		if not char:isvalid() then
+			return
+		end
+
+		local root = char:find_first_child("HumanoidRootPart")
 		if not root then
 			return
 		end
 
 		local s, e = pcall(function()
-			HandleRendering(PositionData.Dealers, root, CONFIG.DealerEsp, true)
-			HandleRendering(PositionData.PointsOfInterest, root, CONFIG.PoiEsp, false)
+			HandleRendering(PositionData.Dealers, root, CONFIG.DealerEsp, DealerColor)
+			HandleRendering(PositionData.PointsOfInterest, root, CONFIG.PoiEsp, PoiColor)
 		end)
 
 		if not s then
