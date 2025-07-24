@@ -43,7 +43,7 @@ local function GetGames(callback)
 		Misc = result["Misc"] or {}
 
 		for id, script in pairs(result) do
-			if id ~= "Misc" then
+			if id ~= "Misc" and id ~= "_Comments" then
 				Games[id] = script
 			end
 		end
