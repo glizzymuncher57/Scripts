@@ -127,7 +127,7 @@ local function HandleRenderHook()
 			goto continue
 		end
 
-		if item:isvalid() then
+		if item:isvalid() and not item:find_first_child("WeldData") then
 			local object = GetItemPart(item)
 			if not object or not object:isvalid() then
 				LogFunc(("Invalid part for item %s, skipping."):format(item.name))
