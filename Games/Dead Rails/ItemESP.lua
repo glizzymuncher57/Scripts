@@ -25,6 +25,8 @@ local UsefulItems = {
 	"Snake Oil",
 	"Sawed-Off Shotgun",
 	"Model_Werewolf",
+	"Crucifix",
+	"Holy Water"
 }
 
 -- Utility functions
@@ -126,8 +128,10 @@ local function HandleRenderHook()
 		if UsefulItemsOnly and not table.find(UsefulItems, item.name) then
 			goto continue
 		end
+		
+		local WeldData = item:find_first_child("WeldData")
 
-		if item:isvalid() and not item:find_first_child("WeldData") then
+		if item:isvalid() and not WeldData:isvalid() then
 			local object = GetItemPart(item)
 			if not object or not object:isvalid() then
 				LogFunc(("Invalid part for item %s, skipping."):format(item.name))
