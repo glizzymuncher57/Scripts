@@ -16,6 +16,7 @@ local SupportedGamePaths = {
 			return Workspace:find_first_child("Police")
 		end,
 		NPCsOnly = true,
+	}
 }
 
 local function Initialise()
